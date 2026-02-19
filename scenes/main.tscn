@@ -1,8 +1,11 @@
-[gd_scene load_steps=4 format=3 uid="uid://main_scene"]
+[gd_scene load_steps=7 format=3 uid="uid://main_scene"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/avatar_controller.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/demo_ui.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/avatar_catalog.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/avatar_download_manager.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/library_ui.gd" id="6"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1")
@@ -26,6 +29,12 @@ script = ExtResource("2")
 
 [node name="AvatarMount" type="Node3D" parent="AvatarController"]
 
+[node name="AvatarCatalog" type="Node" parent="."]
+script = ExtResource("4")
+
+[node name="AvatarDownloadManager" type="Node" parent="."]
+script = ExtResource("5")
+
 [node name="DemoUI" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15
@@ -41,7 +50,7 @@ anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 10.0
-offset_top = -510.0
+offset_top = -540.0
 offset_right = 280.0
 offset_bottom = -10.0
 
@@ -132,6 +141,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Model Diagnostics"
 
+[node name="LibraryButton" type="Button" parent="DemoUI/Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Avatar Library"
+
 [node name="DiagPanel" type="PanelContainer" parent="DemoUI"]
 unique_name_in_owner = true
 layout_mode = 1
@@ -154,6 +168,80 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "(click Model Diagnostics)"
 autowrap_mode = 2
+
+[node name="LibraryPanel" type="PanelContainer" parent="DemoUI"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 290.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+script = ExtResource("6")
+
+[node name="VBox" type="VBoxContainer" parent="DemoUI/LibraryPanel"]
+layout_mode = 2
+
+[node name="Header" type="HBoxContainer" parent="DemoUI/LibraryPanel/VBox"]
+layout_mode = 2
+
+[node name="LibTitle" type="Label" parent="DemoUI/LibraryPanel/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Avatar Library"
+
+[node name="LibCloseButton" type="Button" parent="DemoUI/LibraryPanel/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "X"
+
+[node name="TabBar" type="HBoxContainer" parent="DemoUI/LibraryPanel/VBox"]
+layout_mode = 2
+
+[node name="TabInstalledBtn" type="Button" parent="DemoUI/LibraryPanel/VBox/TabBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Installed"
+
+[node name="TabBrowseBtn" type="Button" parent="DemoUI/LibraryPanel/VBox/TabBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Browse"
+
+[node name="CollectionPicker" type="OptionButton" parent="DemoUI/LibraryPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="InstalledTab" type="ScrollContainer" parent="DemoUI/LibraryPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InstalledGrid" type="GridContainer" parent="DemoUI/LibraryPanel/VBox/InstalledTab"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 4
+
+[node name="BrowseTab" type="ScrollContainer" parent="DemoUI/LibraryPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BrowseGrid" type="GridContainer" parent="DemoUI/LibraryPanel/VBox/BrowseTab"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 4
+
+[node name="LibStatus" type="Label" parent="DemoUI/LibraryPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Open a tab to get started"
 
 [node name="FpsPanel" type="PanelContainer" parent="DemoUI"]
 layout_mode = 1

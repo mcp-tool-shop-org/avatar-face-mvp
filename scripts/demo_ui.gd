@@ -35,6 +35,8 @@ const DEBUG_UPDATE_INTERVAL := 3
 @onready var diag_panel: PanelContainer = %DiagPanel
 @onready var diag_label: Label = %DiagLabel
 @onready var profile_option: OptionButton = %ProfileOption
+@onready var library_button: Button = %LibraryButton
+@onready var library_panel: PanelContainer = %LibraryPanel
 
 
 func _ready():
@@ -52,6 +54,8 @@ func _ready():
 	diag_panel.visible = false
 	profile_option.item_selected.connect(_on_profile_selected)
 	_populate_profiles()
+	library_button.pressed.connect(_on_library_toggle)
+	library_panel.visible = false
 
 	# Populate emotion dropdown
 	var emotions := ["happy", "sad", "angry", "surprised"]
@@ -274,6 +278,15 @@ func _on_driver_selected(idx: int):
 	else:
 		status_label.text = "Driver: OpenSeeFace — start tracker on port 11573"
 		sensitivity_slider.editable = false
+
+
+func _on_library_toggle():
+	library_panel.visible = not library_panel.visible
+	if library_panel.visible:
+		library_panel.show_library()
+		library_button.text = "Hide Library"
+	else:
+		library_button.text = "Avatar Library"
 
 
 func _on_avatar_selected(idx: int):
