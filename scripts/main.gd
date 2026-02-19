@@ -10,8 +10,10 @@ extends Node3D
 @onready var catalog: AvatarCatalog = $AvatarCatalog
 @onready var download_mgr: AvatarDownloadManager = $AvatarDownloadManager
 @onready var tts_controller: TtsController = $TtsController
+@onready var bridge_manager: BridgeManager = $BridgeManager
 
 var _vrm_loader := VrmRuntimeLoader.new()
+var _pose_corrector: PoseCorrector = null
 
 ## Parallel lists: display names + full paths
 var _avatar_names: PackedStringArray = []
@@ -43,6 +45,27 @@ func _ready():
 
 	if _avatar_names.size() > 0:
 		load_avatar(0)
+
+	# Auto-start bridge + auto-connect TTS (non-blocking)
+	bridge_manager.status_changed.connect(_on_bridge_status)
+	bridge_manager.bridge_ready.connect(_on_bridge_ready)
+	bridge_manager.bridge_failed.connect(_on_bridge_failed)
+	bridge_manager.ensure_bridge_running()
+
+
+func _on_bridge_status(message: String):
+	demo_ui.status_label.text = message
+
+
+func _on_bridge_ready():
+	print("Bridge ready — auto-connecting TTS")
+	tts_controller.auto_connect = true
+	tts_controller.connect_to_bridge()
+
+
+func _on_bridge_failed(reason: String):
+	push_warning("Bridge failed: %s" % reason)
+	demo_ui.status_label.text = "Bridge unavailable — use TTS panel to connect manually"
 
 
 ## Scan bundled + downloaded avatars
@@ -113,6 +136,18 @@ func _do_load_vrm():
 		return
 
 	avatar_mount.add_child(instance)
+
+	# Remove old pose corrector if it exists
+	if _pose_corrector and is_instance_valid(_pose_corrector):
+		_pose_corrector.queue_free()
+		_pose_corrector = null
+
+	# Fix T-pose arms: add a PoseCorrector node that applies rotation every frame
+	_pose_corrector = PoseCorrector.new()
+	instance.add_child(_pose_corrector)
+	if _pose_corrector.setup(instance):
+		print("Pose corrected: %s" % _pose_corrector.correction_details)
+
 	avatar_controller.setup_avatar(instance)
 
 	_frame_avatar(instance)

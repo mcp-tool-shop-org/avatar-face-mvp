@@ -101,7 +101,7 @@ func disconnect_from_bridge():
 	auto_connect = false
 
 
-func is_connected() -> bool:
+func is_bridge_connected() -> bool:
 	return _connected
 
 

@@ -53,6 +53,7 @@ const DEBUG_UPDATE_INTERVAL := 3
 @onready var tts_status: Label = %TtsStatus
 
 var _tts_controller: TtsController = null
+var _suppress_profile_signal := false
 
 
 func _ready():
@@ -340,39 +341,43 @@ func _on_avatar_selected(idx: int):
 	var main_node = get_parent()
 	if main_node.has_method("load_avatar"):
 		main_node.load_avatar(idx)
-	# Auto-refresh diagnostics if panel is open
+	# Auto-refresh diagnostics if panel is open (deferred to avoid blocking)
 	if diag_panel.visible:
-		_refresh_diagnostics()
+		call_deferred("_refresh_diagnostics")
 
 
 ## Called by main.gd after a new avatar is loaded
 func on_avatar_loaded():
 	if diag_panel.visible:
-		_refresh_diagnostics()
+		call_deferred("_refresh_diagnostics")
 
 
 func _populate_profiles():
 	if _avatar_controller == null:
 		return
+	_suppress_profile_signal = true
 	profile_option.clear()
 	var profiles: PackedStringArray = _avatar_controller.get_mapping_profiles()
 	for p in profiles:
 		profile_option.add_item(p)
-	# Select active profile
+	# Select active profile without triggering _on_profile_selected
 	for i in profile_option.item_count:
 		if profile_option.get_item_text(i) == _avatar_controller._config.active_profile:
 			profile_option.selected = i
 			break
+	_suppress_profile_signal = false
 
 
 func _on_profile_selected(idx: int):
+	if _suppress_profile_signal:
+		return
 	if _avatar_controller == null:
 		return
 	var profile_name: String = profile_option.get_item_text(idx)
 	_avatar_controller.set_mapping_profile(profile_name)
 	status_label.text = "Mapping: " + profile_name
 	if diag_panel.visible:
-		_refresh_diagnostics()
+		call_deferred("_refresh_diagnostics")
 
 
 func _on_diag_toggle():
@@ -489,7 +494,7 @@ func _on_tts_connect():
 	if _tts_controller == null:
 		tts_status.text = "No TTS controller"
 		return
-	if _tts_controller.is_connected():
+	if _tts_controller.is_bridge_connected():
 		_tts_controller.disconnect_from_bridge()
 		tts_connect_btn.text = "Connect"
 		tts_status.text = "Disconnected"
@@ -500,13 +505,17 @@ func _on_tts_connect():
 
 
 func _on_tts_speak():
-	if _tts_controller == null or not _tts_controller.is_connected():
+	if _tts_controller == null or not _tts_controller.is_bridge_connected():
 		return
 	var text: String = tts_text_edit.text.strip_edges()
 	if text == "":
 		tts_status.text = "Enter text first"
 		return
-	var voice: String = tts_voice_option.get_item_text(tts_voice_option.selected) if tts_voice_option.selected >= 0 else ""
+	var voice := ""
+	if tts_voice_option.selected >= 0:
+		var meta = tts_voice_option.get_item_metadata(tts_voice_option.selected)
+		if meta != null:
+			voice = str(meta)
 	var emotion := ""
 	if tts_emotion_option.selected > 0:  # 0 = "(none)"
 		emotion = tts_emotion_option.get_item_text(tts_emotion_option.selected)
@@ -519,14 +528,17 @@ func _on_tts_stop():
 	if _tts_controller:
 		_tts_controller.stop()
 	tts_stop_btn.disabled = true
-	tts_speak_btn.disabled = not (_tts_controller and _tts_controller.is_connected())
+	tts_speak_btn.disabled = not (_tts_controller and _tts_controller.is_bridge_connected())
 
 
 func _on_tts_connected():
 	tts_connect_btn.text = "Disconnect"
 	tts_speak_btn.disabled = false
-	status_label.text = "TTS bridge connected"
-	# Aside status updates once we get the status response
+	status_label.text = "Ready — speak anytime"
+	# Auto-open the TTS panel so the user sees they can type + speak immediately
+	if not tts_panel.visible:
+		tts_panel.visible = true
+		tts_button.text = "Hide TTS"
 	tts_status.text = "Connected — ready to speak"
 
 
@@ -551,25 +563,28 @@ func _on_tts_playback_started(path: String):
 func _on_tts_playback_finished():
 	tts_status.text = "Ready"
 	status_label.text = "TTS: done"
-	tts_speak_btn.disabled = not (_tts_controller and _tts_controller.is_connected())
+	tts_speak_btn.disabled = not (_tts_controller and _tts_controller.is_bridge_connected())
 	tts_stop_btn.disabled = true
 
 
 func _on_tts_error(message: String):
 	tts_status.text = "Error: " + message
-	tts_speak_btn.disabled = not (_tts_controller and _tts_controller.is_connected())
+	tts_speak_btn.disabled = not (_tts_controller and _tts_controller.is_bridge_connected())
 	tts_stop_btn.disabled = true
 
 
 func _on_tts_voices(voices: Array):
 	tts_voice_option.clear()
 	for v in voices:
-		var label: String = v.get("name", v.get("id", "?"))
+		var vid: String = v.get("id", "?")
+		var label: String = v.get("name", vid)
+		var idx := tts_voice_option.item_count
 		tts_voice_option.add_item(label)
+		tts_voice_option.set_item_metadata(idx, vid)
 	if tts_voice_option.item_count > 0:
 		# Select am_fenrir if available
 		for i in tts_voice_option.item_count:
-			if "fenrir" in tts_voice_option.get_item_text(i):
+			if tts_voice_option.get_item_metadata(i) == "am_fenrir":
 				tts_voice_option.selected = i
 				return
 		tts_voice_option.selected = 0
