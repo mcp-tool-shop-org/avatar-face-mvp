@@ -214,6 +214,9 @@ func get_capture_bus_index() -> int:
 const ARKIT_MARKERS := ["jawOpen", "mouthFunnel", "mouthPucker", "eyeBlink_L", "eyeBlink_R",
 	"mouthSmile_L", "mouthSmile_R", "mouthFrown_L", "browDown_L", "eyeWide_L"]
 
+## VRChat-style blend shape names for auto-detection
+const VRCHAT_MARKERS := ["vrc_v_aa", "vrc_v_ih", "vrc_v_ou", "vrc_v_ee", "vrc_v_oh", "vrc_blink"]
+
 
 ## Run diagnostics on current avatar's blend shapes against mapping.json.
 ## Returns a Dictionary with keys: visemes, expressions, unmapped, status,
@@ -236,12 +239,20 @@ func get_model_diagnostics() -> Dictionary:
 	# Auto-detect model style
 	var arkit_count := 0
 	var vrm_count := 0
+	var vrchat_count := 0
 	for bs_name in _blend_shape_names:
 		if bs_name in ARKIT_MARKERS:
 			arkit_count += 1
 		if bs_name.begins_with("lip_") or bs_name.begins_with("blink_") or bs_name.begins_with("face_"):
 			vrm_count += 1
-	if arkit_count >= 3:
+		# VRChat names often have a prefix like "blendShape1."
+		for marker in VRCHAT_MARKERS:
+			if marker in bs_name:
+				vrchat_count += 1
+				break
+	if vrchat_count >= 3:
+		result["detected_style"] = "vrchat"
+	elif arkit_count >= 3:
 		result["detected_style"] = "arkit"
 	elif vrm_count >= 3:
 		result["detected_style"] = "vrm"
@@ -285,8 +296,10 @@ func get_model_diagnostics() -> Dictionary:
 
 	# Suggest profile switch if style doesn't match active profile
 	var detected: String = result["detected_style"]
-	if detected == "arkit" and _config.active_profile == "VRM Standard":
+	if detected == "arkit" and _config.active_profile != "ARKIT":
 		result["suggested_profile"] = "ARKIT"
+	elif detected == "vrchat" and _config.active_profile != "VRCHAT":
+		result["suggested_profile"] = "VRCHAT"
 	elif detected == "vrm" and _config.active_profile != "VRM Standard":
 		result["suggested_profile"] = "VRM Standard"
 

@@ -1,0 +1,18 @@
+{
+  "visemes": {
+    "aa": "blendShape1.vrc_v_aa",
+    "ih": "blendShape1.vrc_v_ih",
+    "ou": "blendShape1.vrc_v_ou",
+    "ee": "blendShape1.vrc_v_ee",
+    "oh": "blendShape1.vrc_v_oh"
+  },
+  "expressions": {
+    "blink_left": "blendShape1.vrc_blink",
+    "blink_right": "blendShape1.vrc_blink",
+    "happy": "blendShape1.vrc_v_aa",
+    "sad": "blendShape1.vrc_v_dd",
+    "angry": "blendShape1.vrc_v_ff",
+    "surprised": "blendShape1.vrc_v_oh",
+    "neutral": "blendShape1.vrc_v_sil"
+  }
+}

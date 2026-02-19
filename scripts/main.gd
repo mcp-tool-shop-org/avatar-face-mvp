@@ -16,6 +16,14 @@ var _vrm_loader := VrmRuntimeLoader.new()
 var _avatar_names: PackedStringArray = []
 var _avatar_paths: PackedStringArray = []
 
+## Camera zoom state
+var _cam_distance := 0.32
+var _cam_height := 1.42
+var _cam_look_y := 1.38
+const CAM_ZOOM_STEP := 0.05
+const CAM_MIN_DIST := 0.10
+const CAM_MAX_DIST := 2.0
+
 
 func _ready():
 	_scan_all_avatars()
@@ -71,16 +79,32 @@ func load_avatar_by_path(path: String):
 	_load_vrm(path)
 
 
+var _pending_load_path := ""
+
 func _load_vrm(path: String):
+	demo_ui.status_label.text = "Loading: " + path.get_file() + "..."
+
+	# Clear existing avatar immediately (not queue_free) to avoid stale references
+	for child in avatar_mount.get_children():
+		avatar_mount.remove_child(child)
+		child.free()
+
+	# Defer the actual load to next frame so the tree is clean
+	_pending_load_path = path
+	call_deferred("_do_load_vrm")
+
+
+func _do_load_vrm():
+	var path: String = _pending_load_path
+	_pending_load_path = ""
+	if path == "":
+		return
+
 	var instance: Node3D = _vrm_loader.load_vrm(path)
 	if instance == null:
 		push_warning("Failed to load VRM: " + path)
 		demo_ui.status_label.text = "Failed to load: " + path.get_file()
 		return
-
-	# Clear existing avatar
-	for child in avatar_mount.get_children():
-		child.queue_free()
 
 	avatar_mount.add_child(instance)
 	avatar_controller.setup_avatar(instance)
@@ -98,7 +122,39 @@ func refresh_avatar_list():
 	demo_ui.set_avatar_list(_avatar_names)
 
 
+func _unhandled_input(event: InputEvent):
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event
+		if mb.pressed:
+			if mb.button_index == MOUSE_BUTTON_WHEEL_UP:
+				zoom_camera(-CAM_ZOOM_STEP)
+				get_viewport().set_input_as_handled()
+			elif mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				zoom_camera(CAM_ZOOM_STEP)
+				get_viewport().set_input_as_handled()
+
+
+## Zoom camera in (negative delta) or out (positive delta)
+func zoom_camera(delta: float):
+	_cam_distance = clampf(_cam_distance + delta, CAM_MIN_DIST, CAM_MAX_DIST)
+	_apply_camera()
+
+
+## Adjust camera height (for different avatar sizes)
+func adjust_camera_height(delta: float):
+	_cam_height += delta
+	_cam_look_y += delta
+	_apply_camera()
+
+
+func _apply_camera():
+	camera.position = Vector3(0, _cam_height, _cam_distance)
+	camera.look_at(Vector3(0, _cam_look_y, 0))
+
+
 func _frame_avatar(avatar: Node3D):
-	# Tight close-up on face for lipsync demo
-	camera.position = Vector3(0, 1.42, 0.32)
-	camera.look_at(Vector3(0, 1.38, 0))
+	# Reset to default close-up framing
+	_cam_distance = 0.32
+	_cam_height = 1.42
+	_cam_look_y = 1.38
+	_apply_camera()

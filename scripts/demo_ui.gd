@@ -37,6 +37,10 @@ const DEBUG_UPDATE_INTERVAL := 3
 @onready var profile_option: OptionButton = %ProfileOption
 @onready var library_button: Button = %LibraryButton
 @onready var library_panel: PanelContainer = %LibraryPanel
+@onready var zoom_in_btn: Button = %ZoomInBtn
+@onready var zoom_out_btn: Button = %ZoomOutBtn
+@onready var cam_up_btn: Button = %CamUpBtn
+@onready var cam_down_btn: Button = %CamDownBtn
 
 
 func _ready():
@@ -56,6 +60,14 @@ func _ready():
 	_populate_profiles()
 	library_button.pressed.connect(_on_library_toggle)
 	library_panel.visible = false
+	zoom_in_btn.pressed.connect(func(): _get_main().zoom_camera(-0.05))
+	zoom_out_btn.pressed.connect(func(): _get_main().zoom_camera(0.05))
+	cam_up_btn.pressed.connect(func(): _get_main().adjust_camera_height(0.05))
+	cam_down_btn.pressed.connect(func(): _get_main().adjust_camera_height(-0.05))
+
+
+func _get_main() -> Node3D:
+	return get_parent() as Node3D
 
 	# Populate emotion dropdown
 	var emotions := ["happy", "sad", "angry", "surprised"]

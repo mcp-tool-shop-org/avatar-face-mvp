@@ -50,7 +50,7 @@ anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 10.0
-offset_top = -540.0
+offset_top = -570.0
 offset_right = 280.0
 offset_bottom = -10.0
 
@@ -64,6 +64,33 @@ text = "Avatar Face MVP"
 [node name="AvatarOption" type="OptionButton" parent="DemoUI/Panel/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
+
+[node name="CamControls" type="HBoxContainer" parent="DemoUI/Panel/VBox"]
+layout_mode = 2
+
+[node name="ZoomInBtn" type="Button" parent="DemoUI/Panel/VBox/CamControls"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Zoom +"
+
+[node name="ZoomOutBtn" type="Button" parent="DemoUI/Panel/VBox/CamControls"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Zoom -"
+
+[node name="CamUpBtn" type="Button" parent="DemoUI/Panel/VBox/CamControls"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Up"
+
+[node name="CamDownBtn" type="Button" parent="DemoUI/Panel/VBox/CamControls"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Down"
 
 [node name="DriverOption" type="OptionButton" parent="DemoUI/Panel/VBox"]
 unique_name_in_owner = true
