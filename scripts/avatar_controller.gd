@@ -210,8 +210,14 @@ func get_capture_bus_index() -> int:
 	return _audio_bus_idx
 
 
+## ARKit-style blend shape names for auto-detection
+const ARKIT_MARKERS := ["jawOpen", "mouthFunnel", "mouthPucker", "eyeBlink_L", "eyeBlink_R",
+	"mouthSmile_L", "mouthSmile_R", "mouthFrown_L", "browDown_L", "eyeWide_L"]
+
+
 ## Run diagnostics on current avatar's blend shapes against mapping.json.
-## Returns a Dictionary with keys: visemes, expressions, unmapped, status
+## Returns a Dictionary with keys: visemes, expressions, unmapped, status,
+## detected_style, suggested_profile, has_blinks, active_profile
 func get_model_diagnostics() -> Dictionary:
 	var result: Dictionary = {
 		"visemes": [],       # Array of {driver, vrm_name, found}
@@ -219,9 +225,26 @@ func get_model_diagnostics() -> Dictionary:
 		"unmapped": [],      # Blend shapes on the model not referenced by mapping
 		"status": "none",    # "green" | "yellow" | "red" | "none"
 		"total_shapes": _blend_shape_names.size(),
+		"detected_style": "unknown",  # "vrm" | "arkit" | "unknown"
+		"suggested_profile": "",       # profile name if mismatch detected
+		"has_blinks": false,
+		"active_profile": _config.active_profile,
 	}
 	if _mesh_instance == null or _blend_shape_names.size() == 0:
 		return result
+
+	# Auto-detect model style
+	var arkit_count := 0
+	var vrm_count := 0
+	for bs_name in _blend_shape_names:
+		if bs_name in ARKIT_MARKERS:
+			arkit_count += 1
+		if bs_name.begins_with("lip_") or bs_name.begins_with("blink_") or bs_name.begins_with("face_"):
+			vrm_count += 1
+	if arkit_count >= 3:
+		result["detected_style"] = "arkit"
+	elif vrm_count >= 3:
+		result["detected_style"] = "vrm"
 
 	var mapping: Dictionary = _config.get_viseme_map()
 	var expr_mapping: Dictionary = _config.get_expression_map()
@@ -238,9 +261,10 @@ func get_model_diagnostics() -> Dictionary:
 		if found:
 			viseme_hits += 1
 
-	# Check expression coverage
+	# Check expression coverage — track blinks specifically
 	var expr_hits := 0
-	var expr_total := expr_mapping.size()
+	var has_blink_l := false
+	var has_blink_r := false
 	for driver_key in expr_mapping:
 		var vrm_name: String = expr_mapping[driver_key]
 		var found: bool = _blend_shape_cache.has(vrm_name) or _blend_shape_cache.has(vrm_name.to_lower())
@@ -248,22 +272,43 @@ func get_model_diagnostics() -> Dictionary:
 		referenced_names[vrm_name] = true
 		if found:
 			expr_hits += 1
+			if driver_key == "blink_left":
+				has_blink_l = true
+			elif driver_key == "blink_right":
+				has_blink_r = true
+	result["has_blinks"] = has_blink_l and has_blink_r
 
 	# Find unmapped blend shapes
 	for bs_name in _blend_shape_names:
 		if not referenced_names.has(bs_name):
 			result["unmapped"].append(bs_name)
 
-	# Determine status color
-	var total_required := viseme_total + expr_total
-	var total_found := viseme_hits + expr_hits
-	if total_required == 0:
+	# Suggest profile switch if style doesn't match active profile
+	var detected: String = result["detected_style"]
+	if detected == "arkit" and _config.active_profile == "VRM Standard":
+		result["suggested_profile"] = "ARKIT"
+	elif detected == "vrm" and _config.active_profile != "VRM Standard":
+		result["suggested_profile"] = "VRM Standard"
+
+	# Determine status color — blinks are non-negotiable for GREEN
+	if viseme_total == 0:
 		result["status"] = "none"
-	elif viseme_hits >= 3 and total_found >= total_required * 0.8:
+	elif viseme_hits >= 3 and result["has_blinks"]:
 		result["status"] = "green"
-	elif viseme_hits >= 2:
+	elif viseme_hits >= 2 or (viseme_hits >= 3 and not result["has_blinks"]):
 		result["status"] = "yellow"
 	else:
 		result["status"] = "red"
 
 	return result
+
+
+## Switch mapping profile and re-apply config
+func set_mapping_profile(profile_name: String):
+	_config.set_active_profile(profile_name)
+	_apply_config()
+
+
+## Get available mapping profile names
+func get_mapping_profiles() -> PackedStringArray:
+	return _config.get_profile_names()

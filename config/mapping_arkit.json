@@ -1,0 +1,18 @@
+{
+  "visemes": {
+    "aa": "jawOpen",
+    "ih": "mouthSmile_L",
+    "ou": "mouthPucker",
+    "ee": "mouthSmile_R",
+    "oh": "mouthFunnel"
+  },
+  "expressions": {
+    "blink_left": "eyeBlink_L",
+    "blink_right": "eyeBlink_R",
+    "happy": "mouthSmile_L",
+    "sad": "mouthFrown_L",
+    "angry": "browDown_L",
+    "surprised": "eyeWide_L",
+    "neutral": "jawOpen"
+  }
+}

@@ -34,6 +34,7 @@ const DEBUG_UPDATE_INTERVAL := 3
 @onready var diag_button: Button = %DiagButton
 @onready var diag_panel: PanelContainer = %DiagPanel
 @onready var diag_label: Label = %DiagLabel
+@onready var profile_option: OptionButton = %ProfileOption
 
 
 func _ready():
@@ -49,6 +50,8 @@ func _ready():
 	avatar_option.item_selected.connect(_on_avatar_selected)
 	diag_button.pressed.connect(_on_diag_toggle)
 	diag_panel.visible = false
+	profile_option.item_selected.connect(_on_profile_selected)
+	_populate_profiles()
 
 	# Populate emotion dropdown
 	var emotions := ["happy", "sad", "angry", "surprised"]
@@ -288,6 +291,30 @@ func on_avatar_loaded():
 		_refresh_diagnostics()
 
 
+func _populate_profiles():
+	if _avatar_controller == null:
+		return
+	profile_option.clear()
+	var profiles: PackedStringArray = _avatar_controller.get_mapping_profiles()
+	for p in profiles:
+		profile_option.add_item(p)
+	# Select active profile
+	for i in profile_option.item_count:
+		if profile_option.get_item_text(i) == _avatar_controller._config.active_profile:
+			profile_option.selected = i
+			break
+
+
+func _on_profile_selected(idx: int):
+	if _avatar_controller == null:
+		return
+	var profile_name: String = profile_option.get_item_text(idx)
+	_avatar_controller.set_mapping_profile(profile_name)
+	status_label.text = "Mapping: " + profile_name
+	if diag_panel.visible:
+		_refresh_diagnostics()
+
+
 func _on_diag_toggle():
 	diag_panel.visible = not diag_panel.visible
 	if diag_panel.visible:
@@ -317,12 +344,24 @@ func _refresh_diagnostics():
 	else:
 		text += "No model loaded\n"
 
+	# Style detection + profile suggestion
+	var detected: String = diag.get("detected_style", "unknown")
+	var suggested: String = diag.get("suggested_profile", "")
+	var active_prof: String = diag.get("active_profile", "")
+	text += "Style: %s | Profile: %s\n" % [detected.to_upper(), active_prof]
+	if suggested != "":
+		text += ">>> TRY SWITCHING TO: %s <<<\n" % suggested
+
+	# Blink status
+	if not diag.get("has_blinks", false):
+		text += "!! BLINKS MISSING (needed for GREEN) !!\n"
+
 	# Viseme coverage
 	text += "\n--- VISEMES ---\n"
 	var visemes: Array = diag.get("visemes", [])
 	for v in visemes:
 		var marker: String = "OK" if v["found"] else "MISS"
-		text += "  %s: %s -> %s [%s]\n" % [v["driver"], v["driver"], v["vrm_name"], marker]
+		text += "  %s -> %s [%s]\n" % [v["driver"], v["vrm_name"], marker]
 
 	# Expression coverage
 	text += "\n--- EXPRESSIONS ---\n"
@@ -331,11 +370,33 @@ func _refresh_diagnostics():
 		var marker: String = "OK" if e["found"] else "MISS"
 		text += "  %s -> %s [%s]\n" % [e["driver"], e["vrm_name"], marker]
 
-	# Unmapped shapes
+	# Unmapped shapes (categorized)
 	var unmapped: Array = diag.get("unmapped", [])
 	if unmapped.size() > 0:
-		text += "\n--- UNMAPPED (%d) ---\n" % unmapped.size()
+		var mouth_shapes: PackedStringArray = []
+		var eye_shapes: PackedStringArray = []
+		var other_shapes: PackedStringArray = []
 		for u in unmapped:
-			text += "  %s\n" % u
+			var lower: String = u.to_lower()
+			if "mouth" in lower or "jaw" in lower or "lip" in lower or "tongue" in lower:
+				mouth_shapes.append(u)
+			elif "eye" in lower or "blink" in lower or "brow" in lower or "cheek" in lower:
+				eye_shapes.append(u)
+			else:
+				other_shapes.append(u)
+
+		text += "\n--- UNMAPPED (%d) ---\n" % unmapped.size()
+		if mouth_shapes.size() > 0:
+			text += " [mouth/jaw]\n"
+			for s in mouth_shapes:
+				text += "  %s\n" % s
+		if eye_shapes.size() > 0:
+			text += " [eye/brow]\n"
+			for s in eye_shapes:
+				text += "  %s\n" % s
+		if other_shapes.size() > 0:
+			text += " [other]\n"
+			for s in other_shapes:
+				text += "  %s\n" % s
 
 	diag_label.text = text
