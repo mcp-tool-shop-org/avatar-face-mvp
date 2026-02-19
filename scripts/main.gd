@@ -9,6 +9,7 @@ extends Node3D
 @onready var avatar_mount: Node3D = $AvatarController/AvatarMount
 @onready var catalog: AvatarCatalog = $AvatarCatalog
 @onready var download_mgr: AvatarDownloadManager = $AvatarDownloadManager
+@onready var tts_controller: TtsController = $TtsController
 
 var _vrm_loader := VrmRuntimeLoader.new()
 
@@ -34,6 +35,9 @@ func _ready():
 	if lib_panel.has_method("setup"):
 		lib_panel.setup(catalog, download_mgr, self)
 	lib_panel.avatar_load_requested.connect(load_avatar_by_path)
+
+	# Wire up TTS controller
+	demo_ui.setup_tts(tts_controller)
 
 	if _avatar_names.size() > 0:
 		load_avatar(0)

@@ -11,3 +11,7 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# TTS Bridge
+tools/tts-bridge/node_modules/
+.tts-output/

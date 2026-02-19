@@ -41,6 +41,17 @@ const DEBUG_UPDATE_INTERVAL := 3
 @onready var zoom_out_btn: Button = %ZoomOutBtn
 @onready var cam_up_btn: Button = %CamUpBtn
 @onready var cam_down_btn: Button = %CamDownBtn
+@onready var tts_button: Button = %TtsButton
+@onready var tts_panel: PanelContainer = %TtsPanel
+@onready var tts_connect_btn: Button = %TtsConnectBtn
+@onready var tts_close_btn: Button = %TtsCloseBtn
+@onready var tts_voice_option: OptionButton = %TtsVoiceOption
+@onready var tts_text_edit: TextEdit = %TtsTextEdit
+@onready var tts_speak_btn: Button = %TtsSpeakBtn
+@onready var tts_stop_btn: Button = %TtsStopBtn
+@onready var tts_status: Label = %TtsStatus
+
+var _tts_controller: TtsController = null
 
 
 func _ready():
@@ -87,6 +98,21 @@ func _ready():
 	status_label.text = "Load a VRM or drop one in assets/avatars/"
 	signal_label.text = "Signal: --"
 	_update_sensitivity_label()
+
+	# TTS panel wiring
+	tts_button.pressed.connect(_on_tts_toggle)
+	tts_panel.visible = false
+	tts_close_btn.pressed.connect(func(): tts_panel.visible = false; tts_button.text = "TTS Speak")
+	tts_connect_btn.pressed.connect(_on_tts_connect)
+	tts_speak_btn.pressed.connect(_on_tts_speak)
+	tts_stop_btn.pressed.connect(_on_tts_stop)
+	tts_speak_btn.disabled = true
+	tts_stop_btn.disabled = true
+
+	# Default voices until bridge connects
+	var default_voices := ["am_fenrir", "af_sky", "bm_george", "bf_emma", "af_jessica", "am_eric"]
+	for v in default_voices:
+		tts_voice_option.add_item(v)
 
 
 func _get_main() -> Node3D:
@@ -432,3 +458,107 @@ func _refresh_diagnostics():
 				text += "  %s\n" % s
 
 	diag_label.text = text
+
+
+## --- TTS Panel ---
+
+func setup_tts(tts: TtsController):
+	_tts_controller = tts
+	_tts_controller.connected.connect(_on_tts_connected)
+	_tts_controller.disconnected.connect(_on_tts_disconnected)
+	_tts_controller.speaking_started.connect(_on_tts_speaking)
+	_tts_controller.playback_started.connect(_on_tts_playback_started)
+	_tts_controller.playback_finished.connect(_on_tts_playback_finished)
+	_tts_controller.error_received.connect(_on_tts_error)
+	_tts_controller.voices_received.connect(_on_tts_voices)
+
+
+func _on_tts_toggle():
+	tts_panel.visible = not tts_panel.visible
+	tts_button.text = "Hide TTS" if tts_panel.visible else "TTS Speak"
+
+
+func _on_tts_connect():
+	if _tts_controller == null:
+		tts_status.text = "No TTS controller"
+		return
+	if _tts_controller.is_connected():
+		_tts_controller.disconnect_from_bridge()
+		tts_connect_btn.text = "Connect"
+		tts_status.text = "Disconnected"
+		tts_speak_btn.disabled = true
+	else:
+		tts_status.text = "Connecting..."
+		_tts_controller.connect_to_bridge()
+
+
+func _on_tts_speak():
+	if _tts_controller == null or not _tts_controller.is_connected():
+		return
+	var text: String = tts_text_edit.text.strip_edges()
+	if text == "":
+		tts_status.text = "Enter text first"
+		return
+	var voice: String = tts_voice_option.get_item_text(tts_voice_option.selected) if tts_voice_option.selected >= 0 else ""
+	_tts_controller.speak(text, voice)
+	tts_speak_btn.disabled = true
+	tts_stop_btn.disabled = false
+
+
+func _on_tts_stop():
+	if _tts_controller:
+		_tts_controller.stop()
+	tts_stop_btn.disabled = true
+	tts_speak_btn.disabled = not (_tts_controller and _tts_controller.is_connected())
+
+
+func _on_tts_connected():
+	tts_connect_btn.text = "Disconnect"
+	tts_status.text = "Connected — ready to speak"
+	tts_speak_btn.disabled = false
+	status_label.text = "TTS bridge connected"
+
+
+func _on_tts_disconnected():
+	tts_connect_btn.text = "Connect"
+	tts_status.text = "Disconnected"
+	tts_speak_btn.disabled = true
+	tts_stop_btn.disabled = true
+
+
+func _on_tts_speaking(text: String):
+	tts_status.text = "Synthesizing..."
+	status_label.text = "TTS: synthesizing..."
+
+
+func _on_tts_playback_started(path: String):
+	tts_status.text = "Playing: " + path.get_file()
+	status_label.text = "TTS: playing"
+	tts_stop_btn.disabled = false
+
+
+func _on_tts_playback_finished():
+	tts_status.text = "Ready"
+	status_label.text = "TTS: done"
+	tts_speak_btn.disabled = not (_tts_controller and _tts_controller.is_connected())
+	tts_stop_btn.disabled = true
+
+
+func _on_tts_error(message: String):
+	tts_status.text = "Error: " + message
+	tts_speak_btn.disabled = not (_tts_controller and _tts_controller.is_connected())
+	tts_stop_btn.disabled = true
+
+
+func _on_tts_voices(voices: Array):
+	tts_voice_option.clear()
+	for v in voices:
+		var label: String = v.get("name", v.get("id", "?"))
+		tts_voice_option.add_item(label)
+	if tts_voice_option.item_count > 0:
+		# Select am_fenrir if available
+		for i in tts_voice_option.item_count:
+			if "fenrir" in tts_voice_option.get_item_text(i):
+				tts_voice_option.selected = i
+				return
+		tts_voice_option.selected = 0

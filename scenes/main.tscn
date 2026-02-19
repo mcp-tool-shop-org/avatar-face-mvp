@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://main_scene"]
+[gd_scene load_steps=8 format=3 uid="uid://main_scene"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/avatar_controller.gd" id="2"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/avatar_catalog.gd" id="4"]
 [ext_resource type="Script" path="res://scripts/avatar_download_manager.gd" id="5"]
 [ext_resource type="Script" path="res://scripts/library_ui.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/tts_controller.gd" id="7"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1")
@@ -34,6 +35,9 @@ script = ExtResource("4")
 
 [node name="AvatarDownloadManager" type="Node" parent="."]
 script = ExtResource("5")
+
+[node name="TtsController" type="Node" parent="."]
+script = ExtResource("7")
 
 [node name="DemoUI" type="Control" parent="."]
 layout_mode = 3
@@ -172,6 +176,76 @@ text = "Model Diagnostics"
 unique_name_in_owner = true
 layout_mode = 2
 text = "Avatar Library"
+
+[node name="TtsButton" type="Button" parent="DemoUI/Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "TTS Speak"
+
+[node name="TtsPanel" type="PanelContainer" parent="DemoUI"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 290.0
+offset_top = -250.0
+offset_right = 650.0
+offset_bottom = -10.0
+
+[node name="TtsVBox" type="VBoxContainer" parent="DemoUI/TtsPanel"]
+layout_mode = 2
+
+[node name="TtsHeader" type="HBoxContainer" parent="DemoUI/TtsPanel/TtsVBox"]
+layout_mode = 2
+
+[node name="TtsTitle" type="Label" parent="DemoUI/TtsPanel/TtsVBox/TtsHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "TTS Speak"
+
+[node name="TtsConnectBtn" type="Button" parent="DemoUI/TtsPanel/TtsVBox/TtsHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Connect"
+
+[node name="TtsCloseBtn" type="Button" parent="DemoUI/TtsPanel/TtsVBox/TtsHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "X"
+
+[node name="TtsVoiceOption" type="OptionButton" parent="DemoUI/TtsPanel/TtsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TtsTextEdit" type="TextEdit" parent="DemoUI/TtsPanel/TtsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+placeholder_text = "Type text for the avatar to speak..."
+wrap_mode = 1
+
+[node name="TtsBtnRow" type="HBoxContainer" parent="DemoUI/TtsPanel/TtsVBox"]
+layout_mode = 2
+
+[node name="TtsSpeakBtn" type="Button" parent="DemoUI/TtsPanel/TtsVBox/TtsBtnRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Speak"
+
+[node name="TtsStopBtn" type="Button" parent="DemoUI/TtsPanel/TtsVBox/TtsBtnRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Stop"
+
+[node name="TtsStatus" type="Label" parent="DemoUI/TtsPanel/TtsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Not connected"
+autowrap_mode = 2
 
 [node name="DiagPanel" type="PanelContainer" parent="DemoUI"]
 unique_name_in_owner = true
