@@ -1,5 +1,6 @@
 ## Demo harness UI controller.
-## Provides: mic toggle, WAV playback, emotion slider, driver toggle, debug info.
+## Provides: driver toggle, mic toggle, WAV playback, one-click test,
+## avatar selector, emotion slider, signal indicator, debug info.
 extends Control
 
 @export var avatar_controller_path: NodePath
@@ -18,6 +19,7 @@ const DEBUG_UPDATE_INTERVAL := 3
 
 @onready var mic_button: Button = %MicButton
 @onready var wav_button: Button = %WavButton
+@onready var test_wav_button: Button = %TestWavButton
 @onready var emotion_slider: HSlider = %EmotionSlider
 @onready var emotion_label: Label = %EmotionLabel
 @onready var emotion_option: OptionButton = %EmotionOption
@@ -27,6 +29,8 @@ const DEBUG_UPDATE_INTERVAL := 3
 @onready var sensitivity_slider: HSlider = %SensitivitySlider
 @onready var sensitivity_label: Label = %SensitivityLabel
 @onready var driver_option: OptionButton = %DriverOption
+@onready var avatar_option: OptionButton = %AvatarOption
+@onready var signal_label: Label = %SignalLabel
 
 
 func _ready():
@@ -34,10 +38,12 @@ func _ready():
 
 	mic_button.pressed.connect(_on_mic_toggle)
 	wav_button.pressed.connect(_on_wav_load)
+	test_wav_button.pressed.connect(_on_test_wav)
 	emotion_slider.value_changed.connect(_on_emotion_changed)
 	emotion_option.item_selected.connect(_on_emotion_selected)
 	sensitivity_slider.value_changed.connect(_on_sensitivity_changed)
 	driver_option.item_selected.connect(_on_driver_selected)
+	avatar_option.item_selected.connect(_on_avatar_selected)
 
 	# Populate emotion dropdown
 	var emotions := ["happy", "sad", "angry", "surprised"]
@@ -59,13 +65,21 @@ func _ready():
 	sensitivity_slider.value = 8.0
 
 	status_label.text = "Load a VRM or drop one in assets/avatars/"
+	signal_label.text = "Signal: --"
 	_update_sensitivity_label()
+
+
+## Called by main.gd with the list of available VRM files
+func set_avatar_list(avatars: PackedStringArray):
+	avatar_option.clear()
+	for a in avatars:
+		avatar_option.add_item(a.get_basename())
 
 
 func _process(_delta: float):
 	fps_label.text = "FPS: %d" % Engine.get_frames_per_second()
 
-	# Throttle debug text updates — no need to rebuild strings at 60fps
+	# Throttle debug text updates
 	_debug_frame_counter += 1
 	if _debug_frame_counter < DEBUG_UPDATE_INTERVAL:
 		return
@@ -78,16 +92,25 @@ func _process(_delta: float):
 	var weights: Dictionary = mapper._current_weights
 	var text := ""
 	var has_any := false
+	var total_energy := 0.0
 
 	for key in weights:
 		var val: float = weights[key]
 		if val > 0.005:
 			has_any = true
+			total_energy += val
 			var bar_len := int(val * 20)
-			# Slice from pre-allocated string instead of building char by char
 			text += "%s: %.2f %s\n" % [key, val, BAR_CHARS.substr(0, bar_len)]
 
 	blend_debug.text = text if has_any else "(no active weights)"
+
+	# Signal indicator
+	if total_energy > 0.1:
+		signal_label.text = "Signal: ACTIVE"
+	elif total_energy > 0.01:
+		signal_label.text = "Signal: low"
+	else:
+		signal_label.text = "Signal: silence"
 
 
 func _on_mic_toggle():
@@ -124,6 +147,34 @@ func _stop_mic_capture():
 		_mic_capture.stop()
 		_mic_capture.queue_free()
 		_mic_capture = null
+
+
+func _on_test_wav():
+	if _avatar_controller == null:
+		status_label.text = "No avatar loaded"
+		return
+
+	# Play the bundled test vowels WAV
+	var path := "res://assets/audio/test_vowels.wav"
+	if not ResourceLoader.exists(path):
+		status_label.text = "test_vowels.wav not found in assets/audio/"
+		return
+
+	if _wav_player:
+		_wav_player.stop()
+		_wav_player.queue_free()
+
+	var stream: AudioStream = load(path)
+	if stream == null:
+		status_label.text = "Failed to load test_vowels.wav"
+		return
+
+	_wav_player = AudioStreamPlayer.new()
+	_wav_player.stream = stream
+	_wav_player.bus = "Capture"
+	add_child(_wav_player)
+	_wav_player.play()
+	status_label.text = "Playing: test_vowels.wav (ou-oh-aa-ih-ee x2)"
 
 
 func _on_wav_load():
@@ -215,3 +266,9 @@ func _on_driver_selected(idx: int):
 	else:
 		status_label.text = "Driver: OpenSeeFace — start tracker on port 11573"
 		sensitivity_slider.editable = false
+
+
+func _on_avatar_selected(idx: int):
+	var main_node = get_parent()
+	if main_node.has_method("load_avatar"):
+		main_node.load_avatar(idx)

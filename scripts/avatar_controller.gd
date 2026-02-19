@@ -1,5 +1,6 @@
 ## Main avatar controller.
-## Wires together: VisemeDriver/OpenSeeFaceDriver + BlinkController + ExpressionMapper -> VRM blendshapes.
+## Wires together: VisemeDriver/OpenSeeFaceDriver + BlinkController + IdleController
+## + ExpressionMapper -> VRM blendshapes + skeleton bones.
 ## Supports driver switching at runtime. Loads config from JSON files.
 extends Node3D
 
@@ -14,6 +15,7 @@ var _viseme_driver := VisemeDriver.new()
 var _osf_driver := OpenSeeFaceDriver.new()
 var _blink_controller := BlinkController.new()
 var _expression_mapper := ExpressionMapper.new()
+var _idle_controller := IdleController.new()
 
 var _driver_mode: int = DriverMode.FFT
 
@@ -35,9 +37,13 @@ var _spectrum_effect: AudioEffectSpectrumAnalyzer = null
 var _config_check_timer := 0.0
 const CONFIG_CHECK_INTERVAL := 2.0
 
+# Head pose smoothing
+var _smoothed_head_rotation := Vector3.ZERO
+var _head_pose_attack := 0.08
+var _head_pose_release := 0.15
+
 
 func _ready():
-	# Load config and distribute to subsystems
 	_apply_config()
 	_setup_audio_bus()
 
@@ -88,13 +94,14 @@ func setup_avatar(avatar: Node3D):
 		for i in _mesh_instance.mesh.get_blend_shape_count():
 			var bs_name: String = _mesh_instance.mesh.get_blend_shape_name(i)
 			_blend_shape_names.append(bs_name)
-			# Pre-cache both exact and lowercase lookups
 			_blend_shape_cache[bs_name] = i
 			_blend_shape_cache[bs_name.to_lower()] = i
 		print("Found %d blend shapes: %s" % [_blend_shape_names.size(), _blend_shape_names])
 	else:
 		push_warning("No MeshInstance3D with blend shapes found in avatar")
 	_expression_mapper.reset()
+	_idle_controller.setup(avatar)
+	_smoothed_head_rotation = Vector3.ZERO
 
 
 func _find_mesh_instance(node: Node) -> MeshInstance3D:
@@ -112,13 +119,13 @@ func _find_mesh_instance(node: Node) -> MeshInstance3D:
 func set_driver_mode(mode: int):
 	if mode == _driver_mode:
 		return
-	# Stop previous driver if needed
 	if _driver_mode == DriverMode.OPENSEEFACE:
 		_osf_driver.stop()
 	_driver_mode = mode
 	if _driver_mode == DriverMode.OPENSEEFACE:
 		_osf_driver.start()
 	_expression_mapper.reset()
+	_smoothed_head_rotation = Vector3.ZERO
 
 
 func get_driver_mode() -> int:
@@ -143,16 +150,36 @@ func _process(delta: float):
 	if _driver_mode == DriverMode.FFT:
 		var visemes := _viseme_driver.get_viseme_weights()
 		_merged_weights.merge(visemes)
-		# FFT mode: use procedural blink
 		var blink := _blink_controller.update(delta)
 		_merged_weights.merge(blink)
 	else:
-		# OpenSeeFace: poll UDP, get both visemes and expressions (including blink)
 		_osf_driver.poll()
 		var visemes := _osf_driver.get_viseme_weights()
 		_merged_weights.merge(visemes)
 		var expressions := _osf_driver.get_expression_weights()
 		_merged_weights.merge(expressions)
+
+		# Apply head pose from tracker with smoothing
+		var target_rot := _osf_driver.head_rotation
+		var speed_x: float
+		var speed_y: float
+		var speed_z: float
+		if abs(target_rot.x) > abs(_smoothed_head_rotation.x):
+			speed_x = 1.0 - exp(-delta / _head_pose_attack)
+		else:
+			speed_x = 1.0 - exp(-delta / _head_pose_release)
+		if abs(target_rot.y) > abs(_smoothed_head_rotation.y):
+			speed_y = 1.0 - exp(-delta / _head_pose_attack)
+		else:
+			speed_y = 1.0 - exp(-delta / _head_pose_release)
+		if abs(target_rot.z) > abs(_smoothed_head_rotation.z):
+			speed_z = 1.0 - exp(-delta / _head_pose_attack)
+		else:
+			speed_z = 1.0 - exp(-delta / _head_pose_release)
+		_smoothed_head_rotation.x = lerpf(_smoothed_head_rotation.x, target_rot.x, speed_x)
+		_smoothed_head_rotation.y = lerpf(_smoothed_head_rotation.y, target_rot.y, speed_y)
+		_smoothed_head_rotation.z = lerpf(_smoothed_head_rotation.z, target_rot.z, speed_z)
+		_idle_controller.apply_head_pose(_smoothed_head_rotation)
 
 	# 2. Add emotion from slider
 	if current_emotion.length() > 0 and emotion_weight > 0.0:
@@ -168,6 +195,9 @@ func _process(delta: float):
 			idx = _blend_shape_cache.get(vrm_name.to_lower(), -1)
 		if idx >= 0:
 			_mesh_instance.set_blend_shape_value(idx, vrm_weights[vrm_name])
+
+	# 5. Idle animation (breathing, sway) — runs in both driver modes
+	_idle_controller.update(delta)
 
 
 ## Get list of available blend shapes (for debug UI)

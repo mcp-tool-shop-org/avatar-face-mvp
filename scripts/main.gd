@@ -1,5 +1,5 @@
 ## Main scene script.
-## Handles VRM loading and scene setup.
+## Handles VRM loading, avatar listing, and scene setup.
 extends Node3D
 
 @onready var avatar_controller: Node3D = $AvatarController
@@ -7,25 +7,38 @@ extends Node3D
 @onready var camera: Camera3D = $Camera3D
 @onready var avatar_mount: Node3D = $AvatarController/AvatarMount
 
+## List of available VRM files
+var _avatar_list: PackedStringArray = []
+
 
 func _ready():
-	# Try to auto-load first VRM found in assets/avatars/
-	_try_autoload_avatar()
+	_scan_avatars()
+	demo_ui.set_avatar_list(_avatar_list)
+	if _avatar_list.size() > 0:
+		load_avatar(0)
 
 
-func _try_autoload_avatar():
+## Scan assets/avatars/ for .vrm files
+func _scan_avatars():
+	_avatar_list.clear()
 	var dir: DirAccess = DirAccess.open("res://assets/avatars/")
 	if dir == null:
 		return
-
 	dir.list_dir_begin()
 	var file_name: String = dir.get_next()
 	while file_name != "":
 		if file_name.ends_with(".vrm"):
-			var path := "res://assets/avatars/" + file_name
-			_load_vrm(path)
-			return
+			_avatar_list.append(file_name)
 		file_name = dir.get_next()
+	_avatar_list.sort()
+
+
+## Load avatar by index in the list
+func load_avatar(idx: int):
+	if idx < 0 or idx >= _avatar_list.size():
+		return
+	var path := "res://assets/avatars/" + _avatar_list[idx]
+	_load_vrm(path)
 
 
 func _load_vrm(path: String):
@@ -48,7 +61,6 @@ func _load_vrm(path: String):
 	avatar_mount.add_child(instance)
 	avatar_controller.setup_avatar(instance)
 
-	# Position camera to frame the face
 	_frame_avatar(instance)
 
 	demo_ui.status_label.text = "Loaded: " + path.get_file()
