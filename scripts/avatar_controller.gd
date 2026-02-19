@@ -1,6 +1,7 @@
 ## Main avatar controller.
 ## Wires together: VisemeDriver/OpenSeeFaceDriver + BlinkController + IdleController
-## + ExpressionMapper -> VRM blendshapes + skeleton bones.
+## + GazeController + ExpressionMapper -> VRM blendshapes + skeleton bones.
+## Includes expression compositor (blinks override eyes, visemes win mouth region).
 ## Supports driver switching at runtime. Loads config from JSON files.
 extends Node3D
 
@@ -16,6 +17,7 @@ var _osf_driver := OpenSeeFaceDriver.new()
 var _blink_controller := BlinkController.new()
 var _expression_mapper := ExpressionMapper.new()
 var _idle_controller := IdleController.new()
+var _gaze_controller := GazeController.new()
 
 var _driver_mode: int = DriverMode.FFT
 
@@ -29,6 +31,12 @@ var _blend_shape_cache: Dictionary = {}
 ## Reusable merged driver weights dict — avoids per-frame allocation
 var _merged_weights: Dictionary = {}
 
+## Audio energy tracking (for speech-triggered blinks + head bob)
+var _speech_energy := 0.0
+var _speech_energy_smooth := 0.0
+const SPEECH_ENERGY_ATTACK := 0.03
+const SPEECH_ENERGY_RELEASE := 0.15
+
 # Audio bus setup
 var _audio_bus_idx: int = -1
 var _spectrum_effect: AudioEffectSpectrumAnalyzer = null
@@ -41,6 +49,8 @@ const CONFIG_CHECK_INTERVAL := 2.0
 var _smoothed_head_rotation := Vector3.ZERO
 var _head_pose_attack := 0.08
 var _head_pose_release := 0.15
+var _prev_head_rotation := Vector3.ZERO
+const HEAD_SACCADE_THRESHOLD := 8.0  # degrees — triggers blink + eye saccade
 
 
 func _ready():
@@ -101,7 +111,11 @@ func setup_avatar(avatar: Node3D):
 		push_warning("No MeshInstance3D with blend shapes found in avatar")
 	_expression_mapper.reset()
 	_idle_controller.setup(avatar)
+	_gaze_controller.setup(_idle_controller)
 	_smoothed_head_rotation = Vector3.ZERO
+	_prev_head_rotation = Vector3.ZERO
+	_speech_energy = 0.0
+	_speech_energy_smooth = 0.0
 
 
 func _find_mesh_instance(node: Node) -> MeshInstance3D:
@@ -126,6 +140,7 @@ func set_driver_mode(mode: int):
 		_osf_driver.start()
 	_expression_mapper.reset()
 	_smoothed_head_rotation = Vector3.ZERO
+	_prev_head_rotation = Vector3.ZERO
 
 
 func get_driver_mode() -> int:
@@ -144,20 +159,52 @@ func _process(delta: float):
 			_apply_config()
 			print("Config reloaded")
 
-	# 1. Get viseme weights from active driver
+	# === 1. Collect raw weights from active driver ===
 	_merged_weights.clear()
 
 	if _driver_mode == DriverMode.FFT:
 		var visemes := _viseme_driver.get_viseme_weights()
 		_merged_weights.merge(visemes)
-		var blink := _blink_controller.update(delta)
+
+		# Compute speech energy from viseme total
+		_speech_energy = 0.0
+		for key in visemes:
+			_speech_energy += visemes[key]
+		_speech_energy = clampf(_speech_energy, 0.0, 1.0)
+
+		# Smooth speech energy (asymmetric: fast attack, slow release)
+		if _speech_energy > _speech_energy_smooth:
+			_speech_energy_smooth = lerpf(_speech_energy_smooth, _speech_energy,
+				1.0 - exp(-delta / SPEECH_ENERGY_ATTACK))
+		else:
+			_speech_energy_smooth = lerpf(_speech_energy_smooth, _speech_energy,
+				1.0 - exp(-delta / SPEECH_ENERGY_RELEASE))
+
+		# Context-aware blink with speech energy
+		var blink := _blink_controller.update(delta, _speech_energy_smooth)
 		_merged_weights.merge(blink)
+
 	else:
 		_osf_driver.poll()
 		var visemes := _osf_driver.get_viseme_weights()
 		_merged_weights.merge(visemes)
 		var expressions := _osf_driver.get_expression_weights()
 		_merged_weights.merge(expressions)
+
+		# Speech energy from OSF visemes
+		_speech_energy = 0.0
+		for key in visemes:
+			_speech_energy += visemes[key]
+		_speech_energy = clampf(_speech_energy, 0.0, 1.0)
+		if _speech_energy > _speech_energy_smooth:
+			_speech_energy_smooth = lerpf(_speech_energy_smooth, _speech_energy,
+				1.0 - exp(-delta / SPEECH_ENERGY_ATTACK))
+		else:
+			_speech_energy_smooth = lerpf(_speech_energy_smooth, _speech_energy,
+				1.0 - exp(-delta / SPEECH_ENERGY_RELEASE))
+
+		var blink := _blink_controller.update(delta, _speech_energy_smooth)
+		_merged_weights.merge(blink)
 
 		# Apply head pose from tracker with smoothing
 		var target_rot := _osf_driver.head_rotation
@@ -179,16 +226,33 @@ func _process(delta: float):
 		_smoothed_head_rotation.x = lerpf(_smoothed_head_rotation.x, target_rot.x, speed_x)
 		_smoothed_head_rotation.y = lerpf(_smoothed_head_rotation.y, target_rot.y, speed_y)
 		_smoothed_head_rotation.z = lerpf(_smoothed_head_rotation.z, target_rot.z, speed_z)
+
+		# Detect large head saccade -> trigger sympathetic blink + eye jump
+		var head_delta := (_smoothed_head_rotation - _prev_head_rotation).length()
+		if head_delta > HEAD_SACCADE_THRESHOLD:
+			_blink_controller.on_head_saccade()
+			_gaze_controller.on_head_saccade()
+		_prev_head_rotation = _smoothed_head_rotation
+
 		_idle_controller.apply_head_pose(_smoothed_head_rotation)
 
-	# 2. Add emotion from slider
+	# === 2. Add emotion from slider ===
 	if current_emotion.length() > 0 and emotion_weight > 0.0:
 		_merged_weights[current_emotion] = emotion_weight
 
-	# 3. Map and smooth everything
+	# === 3. Eye gaze (micro-saccades) ===
+	_gaze_controller.update(delta, _idle_controller)
+	if _gaze_controller._use_blendshapes:
+		var gaze_weights := _gaze_controller.get_blendshape_weights()
+		_merged_weights.merge(gaze_weights)
+
+	# === 4. Map and smooth everything ===
 	var vrm_weights := _expression_mapper.map_and_smooth(_merged_weights, delta)
 
-	# 4. Apply to mesh (using cached index lookup)
+	# === 5. Expression compositor — resolve conflicts ===
+	_apply_compositor(vrm_weights)
+
+	# === 6. Apply to mesh (using cached index lookup) ===
 	for vrm_name in vrm_weights:
 		var idx: int = _blend_shape_cache.get(vrm_name, -1)
 		if idx < 0:
@@ -196,8 +260,55 @@ func _process(delta: float):
 		if idx >= 0:
 			_mesh_instance.set_blend_shape_value(idx, vrm_weights[vrm_name])
 
-	# 5. Idle animation (breathing, sway) — runs in both driver modes
+	# === 7. Audio-driven micro head bob ===
+	if _speech_energy_smooth > 0.05:
+		_idle_controller.apply_speech_head_bob(_speech_energy_smooth)
+
+	# === 8. Idle animation (breathing, sway) — runs in both driver modes ===
 	_idle_controller.update(delta)
+
+
+## Expression compositor: resolve conflicts between blinks, visemes, emotions, gaze.
+## Modifies vrm_weights in place.
+func _apply_compositor(vrm_weights: Dictionary):
+	# Rule 1: Blinks always win over eye-open shapes.
+	var blink_l: float = vrm_weights.get("blinkLeft", vrm_weights.get("blink_L", 0.0))
+	var blink_r: float = vrm_weights.get("blinkRight", vrm_weights.get("blink_R", 0.0))
+	var blink_max := maxf(blink_l, blink_r)
+
+	if blink_max > 0.1:
+		var suppress := blink_max
+		for key in vrm_weights:
+			var lower: String = key.to_lower()
+			if "eyelook" in lower or "eyewide" in lower or "eyesquint" in lower:
+				vrm_weights[key] *= (1.0 - suppress)
+
+	# Rule 2: Visemes win mouth region over low-frequency emotions.
+	var viseme_total := 0.0
+	for key in vrm_weights:
+		var lower: String = key.to_lower()
+		if "viseme" in lower or "lip_" in lower or "vrc_v_" in lower:
+			viseme_total += vrm_weights[key]
+
+	if viseme_total > 0.1:
+		var mouth_suppress := clampf(viseme_total * 0.7, 0.0, 0.8)
+		for key in vrm_weights:
+			var lower: String = key.to_lower()
+			if ("smile" in lower or "frown" in lower) and "viseme" not in lower:
+				vrm_weights[key] *= (1.0 - mouth_suppress)
+
+	# Rule 3: Total mouth deformation clamp (jaw + visemes <= 1.2).
+	var jaw_total := 0.0
+	var jaw_keys: Array = []
+	for key in vrm_weights:
+		var lower: String = key.to_lower()
+		if "jaw" in lower or "viseme" in lower or "lip_" in lower or "vrc_v_" in lower:
+			jaw_total += vrm_weights[key]
+			jaw_keys.append(key)
+	if jaw_total > 1.2:
+		var scale_factor := 1.2 / jaw_total
+		for key in jaw_keys:
+			vrm_weights[key] *= scale_factor
 
 
 ## Get list of available blend shapes (for debug UI)
@@ -210,6 +321,11 @@ func get_capture_bus_index() -> int:
 	return _audio_bus_idx
 
 
+## Get current speech energy (for debug UI)
+func get_speech_energy() -> float:
+	return _speech_energy_smooth
+
+
 ## ARKit-style blend shape names for auto-detection
 const ARKIT_MARKERS := ["jawOpen", "mouthFunnel", "mouthPucker", "eyeBlink_L", "eyeBlink_R",
 	"mouthSmile_L", "mouthSmile_R", "mouthFrown_L", "browDown_L", "eyeWide_L"]
@@ -219,19 +335,18 @@ const VRCHAT_MARKERS := ["vrc_v_aa", "vrc_v_ih", "vrc_v_ou", "vrc_v_ee", "vrc_v_
 
 
 ## Run diagnostics on current avatar's blend shapes against mapping.json.
-## Returns a Dictionary with keys: visemes, expressions, unmapped, status,
-## detected_style, suggested_profile, has_blinks, active_profile
 func get_model_diagnostics() -> Dictionary:
 	var result: Dictionary = {
-		"visemes": [],       # Array of {driver, vrm_name, found}
-		"expressions": [],   # Array of {driver, vrm_name, found}
-		"unmapped": [],      # Blend shapes on the model not referenced by mapping
-		"status": "none",    # "green" | "yellow" | "red" | "none"
+		"visemes": [],
+		"expressions": [],
+		"unmapped": [],
+		"status": "none",
 		"total_shapes": _blend_shape_names.size(),
-		"detected_style": "unknown",  # "vrm" | "arkit" | "unknown"
-		"suggested_profile": "",       # profile name if mismatch detected
+		"detected_style": "unknown",
+		"suggested_profile": "",
 		"has_blinks": false,
 		"active_profile": _config.active_profile,
+		"has_eye_bones": _idle_controller.has_eye_bones(),
 	}
 	if _mesh_instance == null or _blend_shape_names.size() == 0:
 		return result
@@ -245,7 +360,6 @@ func get_model_diagnostics() -> Dictionary:
 			arkit_count += 1
 		if bs_name.begins_with("lip_") or bs_name.begins_with("blink_") or bs_name.begins_with("face_"):
 			vrm_count += 1
-		# VRChat names often have a prefix like "blendShape1."
 		for marker in VRCHAT_MARKERS:
 			if marker in bs_name:
 				vrchat_count += 1
@@ -261,7 +375,6 @@ func get_model_diagnostics() -> Dictionary:
 	var expr_mapping: Dictionary = _config.get_expression_map()
 	var referenced_names: Dictionary = {}
 
-	# Check viseme coverage
 	var viseme_hits := 0
 	var viseme_total := mapping.size()
 	for driver_key in mapping:
@@ -272,7 +385,6 @@ func get_model_diagnostics() -> Dictionary:
 		if found:
 			viseme_hits += 1
 
-	# Check expression coverage — track blinks specifically
 	var expr_hits := 0
 	var has_blink_l := false
 	var has_blink_r := false
@@ -289,12 +401,10 @@ func get_model_diagnostics() -> Dictionary:
 				has_blink_r = true
 	result["has_blinks"] = has_blink_l and has_blink_r
 
-	# Find unmapped blend shapes
 	for bs_name in _blend_shape_names:
 		if not referenced_names.has(bs_name):
 			result["unmapped"].append(bs_name)
 
-	# Suggest profile switch if style doesn't match active profile
 	var detected: String = result["detected_style"]
 	if detected == "arkit" and _config.active_profile != "ARKIT":
 		result["suggested_profile"] = "ARKIT"
@@ -303,7 +413,6 @@ func get_model_diagnostics() -> Dictionary:
 	elif detected == "vrm" and _config.active_profile != "VRM Standard":
 		result["suggested_profile"] = "VRM Standard"
 
-	# Determine status color — blinks are non-negotiable for GREEN
 	if viseme_total == 0:
 		result["status"] = "none"
 	elif viseme_hits >= 3 and result["has_blinks"]:

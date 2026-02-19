@@ -65,10 +65,6 @@ func _ready():
 	cam_up_btn.pressed.connect(func(): _get_main().adjust_camera_height(0.05))
 	cam_down_btn.pressed.connect(func(): _get_main().adjust_camera_height(-0.05))
 
-
-func _get_main() -> Node3D:
-	return get_parent() as Node3D
-
 	# Populate emotion dropdown
 	var emotions := ["happy", "sad", "angry", "surprised"]
 	for e in emotions:
@@ -91,6 +87,10 @@ func _get_main() -> Node3D:
 	status_label.text = "Load a VRM or drop one in assets/avatars/"
 	signal_label.text = "Signal: --"
 	_update_sensitivity_label()
+
+
+func _get_main() -> Node3D:
+	return get_parent() as Node3D
 
 
 ## Called by main.gd with the list of available VRM files
@@ -128,9 +128,12 @@ func _process(_delta: float):
 
 	blend_debug.text = text if has_any else "(no active weights)"
 
-	# Signal indicator
+	# Signal indicator (with speech energy from presence systems)
+	var speech_e := 0.0
+	if _avatar_controller.has_method("get_speech_energy"):
+		speech_e = _avatar_controller.get_speech_energy()
 	if total_energy > 0.1:
-		signal_label.text = "Signal: ACTIVE"
+		signal_label.text = "Signal: ACTIVE (%.0f%%)" % (speech_e * 100)
 	elif total_energy > 0.01:
 		signal_label.text = "Signal: low"
 	else:
@@ -377,9 +380,13 @@ func _refresh_diagnostics():
 	if suggested != "":
 		text += ">>> TRY SWITCHING TO: %s <<<\n" % suggested
 
-	# Blink status
+	# Blink + eye bone status
 	if not diag.get("has_blinks", false):
 		text += "!! BLINKS MISSING (needed for GREEN) !!\n"
+	var has_eye_bones: bool = diag.get("has_eye_bones", false)
+	text += "Eye bones: %s | Gaze: %s\n" % [
+		"YES" if has_eye_bones else "NO (blendshape fallback)",
+		"saccades active"]
 
 	# Viseme coverage
 	text += "\n--- VISEMES ---\n"

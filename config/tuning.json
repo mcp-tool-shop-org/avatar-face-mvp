@@ -15,7 +15,37 @@
   "blink": {
     "min_interval": 2.0,
     "max_interval": 6.0,
-    "duration": 0.15
+    "duration": 0.15,
+    "asymmetry_lead": 0.012,
+    "saccade_blink_chance": 0.6,
+    "speech_pause_blink_chance": 0.5
+  },
+  "idle": {
+    "breath_amplitude": 0.003,
+    "breath_period": 4.5,
+    "sway_amplitude_x": 0.4,
+    "sway_amplitude_z": 0.3,
+    "sway_period_x": 7.0,
+    "sway_period_z": 5.5,
+    "head_drift_amplitude": 0.8,
+    "head_drift_period": 6.0,
+    "shoulder_breath_amplitude": 0.15
+  },
+  "gaze": {
+    "saccade_min_interval": 0.25,
+    "saccade_max_interval": 0.7,
+    "saccade_amplitude": 1.2,
+    "max_yaw": 20.0,
+    "max_pitch": 12.0,
+    "eye_speed": 12.0
+  },
+  "head_pose": {
+    "attack": 0.08,
+    "release": 0.15,
+    "saccade_threshold": 8.0,
+    "max_yaw": 35.0,
+    "max_pitch": 20.0,
+    "max_roll": 15.0
   },
   "openseeface": {
     "host": "127.0.0.1",
