@@ -1,17 +1,11 @@
 ## FFT-based viseme driver.
 ## Analyzes audio spectrum and maps frequency bands to the 5 VRM visemes.
-## Attach to a node that has access to the audio bus with a SpectrumAnalyzer effect.
+## Loads band ranges from config/tuning.json. Falls back to hardcoded defaults.
 class_name VisemeDriver
 extends RefCounted
 
-## Frequency band ranges (Hz) for each viseme.
-## These are rough approximations — good enough for convincing mouth movement.
-## aa (open mouth) = low formant ~700-1000 Hz
-## ee (wide mouth) = mid formant ~2000-2500 Hz
-## ih (slightly open) = mid-low ~1500-1800 Hz
-## oh (round mouth) = low-mid ~500-700 Hz
-## ou (pursed lips) = low ~300-500 Hz
-const VISEME_BANDS := {
+## Default frequency band ranges (Hz) for each viseme.
+const DEFAULT_BANDS := {
 	"ou": Vector2(250.0, 500.0),
 	"oh": Vector2(500.0, 750.0),
 	"aa": Vector2(700.0, 1100.0),
@@ -24,7 +18,32 @@ var noise_gate := 0.003
 ## Sensitivity multiplier
 var sensitivity := 8.0
 
+## Active band config (may be overridden by config file)
+var _bands: Dictionary = {}
+
 var _spectrum: AudioEffectSpectrumAnalyzerInstance = null
+
+## Reusable weights dictionary — never reallocated
+var _weights: Dictionary = {
+	"aa": 0.0, "ih": 0.0, "ou": 0.0, "ee": 0.0, "oh": 0.0,
+}
+
+
+func _init():
+	_bands = DEFAULT_BANDS.duplicate()
+
+
+## Load band ranges + tuning from config.
+func load_from_config(config: ConfigLoader):
+	noise_gate = config.get_noise_gate()
+	sensitivity = config.get_sensitivity()
+	var cfg_bands := config.get_viseme_bands()
+	if cfg_bands.size() > 0:
+		_bands.clear()
+		for key in cfg_bands:
+			var arr = cfg_bands[key]
+			if arr is Array and arr.size() >= 2:
+				_bands[key] = Vector2(float(arr[0]), float(arr[1]))
 
 
 func set_spectrum(spectrum_instance: AudioEffectSpectrumAnalyzerInstance):
@@ -32,23 +51,22 @@ func set_spectrum(spectrum_instance: AudioEffectSpectrumAnalyzerInstance):
 
 
 ## Analyze current audio frame and return viseme weights.
-## Returns: { "aa": float, "ih": float, "ou": float, "ee": float, "oh": float }
+## Returns the same Dictionary reference each call (no allocation).
 func get_viseme_weights() -> Dictionary:
-	var weights := {
-		"aa": 0.0,
-		"ih": 0.0,
-		"ou": 0.0,
-		"ee": 0.0,
-		"oh": 0.0,
-	}
+	# Zero out
+	_weights["aa"] = 0.0
+	_weights["ih"] = 0.0
+	_weights["ou"] = 0.0
+	_weights["ee"] = 0.0
+	_weights["oh"] = 0.0
 
 	if _spectrum == null:
-		return weights
+		return _weights
 
 	var total_energy := 0.0
 
-	for viseme_name in VISEME_BANDS:
-		var band: Vector2 = VISEME_BANDS[viseme_name]
+	for viseme_name in _bands:
+		var band: Vector2 = _bands[viseme_name]
 		var magnitude: float = _spectrum.get_magnitude_for_frequency_range(
 			band.x, band.y
 		).length()
@@ -58,13 +76,16 @@ func get_viseme_weights() -> Dictionary:
 		else:
 			magnitude = (magnitude - noise_gate) * sensitivity
 
-		magnitude = clampf(magnitude, 0.0, 1.0)
-		weights[viseme_name] = magnitude
+		if magnitude > 1.0:
+			magnitude = 1.0
+
+		_weights[viseme_name] = magnitude
 		total_energy += magnitude
 
-	# Normalize so total doesn't exceed 1.0 (mouth can't be in two shapes at once)
+	# Normalize so total doesn't exceed 1.0
 	if total_energy > 1.0:
-		for key in weights:
-			weights[key] /= total_energy
+		var inv := 1.0 / total_energy
+		for key in _weights:
+			_weights[key] *= inv
 
-	return weights
+	return _weights

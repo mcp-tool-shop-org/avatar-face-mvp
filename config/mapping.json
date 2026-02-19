@@ -1,0 +1,18 @@
+{
+  "visemes": {
+    "aa": "viseme_aa",
+    "ih": "viseme_ih",
+    "ou": "viseme_ou",
+    "ee": "viseme_ee",
+    "oh": "viseme_oh"
+  },
+  "expressions": {
+    "blink_left": "blinkLeft",
+    "blink_right": "blinkRight",
+    "happy": "happy",
+    "sad": "sad",
+    "angry": "angry",
+    "surprised": "surprised",
+    "neutral": "neutral"
+  }
+}

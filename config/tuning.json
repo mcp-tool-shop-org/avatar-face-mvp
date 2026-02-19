@@ -1,0 +1,24 @@
+{
+  "smoothing": {
+    "attack_time": 0.06,
+    "release_time": 0.12
+  },
+  "viseme_bands": {
+    "ou": [250.0, 500.0],
+    "oh": [500.0, 750.0],
+    "aa": [700.0, 1100.0],
+    "ih": [1400.0, 1900.0],
+    "ee": [1900.0, 2600.0]
+  },
+  "noise_gate": 0.003,
+  "sensitivity": 8.0,
+  "blink": {
+    "min_interval": 2.0,
+    "max_interval": 6.0,
+    "duration": 0.15
+  },
+  "openseeface": {
+    "host": "127.0.0.1",
+    "port": 11573
+  }
+}
