@@ -31,6 +31,9 @@ const DEBUG_UPDATE_INTERVAL := 3
 @onready var driver_option: OptionButton = %DriverOption
 @onready var avatar_option: OptionButton = %AvatarOption
 @onready var signal_label: Label = %SignalLabel
+@onready var diag_button: Button = %DiagButton
+@onready var diag_panel: PanelContainer = %DiagPanel
+@onready var diag_label: Label = %DiagLabel
 
 
 func _ready():
@@ -44,6 +47,8 @@ func _ready():
 	sensitivity_slider.value_changed.connect(_on_sensitivity_changed)
 	driver_option.item_selected.connect(_on_driver_selected)
 	avatar_option.item_selected.connect(_on_avatar_selected)
+	diag_button.pressed.connect(_on_diag_toggle)
+	diag_panel.visible = false
 
 	# Populate emotion dropdown
 	var emotions := ["happy", "sad", "angry", "surprised"]
@@ -272,3 +277,65 @@ func _on_avatar_selected(idx: int):
 	var main_node = get_parent()
 	if main_node.has_method("load_avatar"):
 		main_node.load_avatar(idx)
+	# Auto-refresh diagnostics if panel is open
+	if diag_panel.visible:
+		_refresh_diagnostics()
+
+
+## Called by main.gd after a new avatar is loaded
+func on_avatar_loaded():
+	if diag_panel.visible:
+		_refresh_diagnostics()
+
+
+func _on_diag_toggle():
+	diag_panel.visible = not diag_panel.visible
+	if diag_panel.visible:
+		_refresh_diagnostics()
+		diag_button.text = "Hide Diagnostics"
+	else:
+		diag_button.text = "Model Diagnostics"
+
+
+func _refresh_diagnostics():
+	if _avatar_controller == null or not _avatar_controller.has_method("get_model_diagnostics"):
+		diag_label.text = "No avatar loaded"
+		return
+
+	var diag: Dictionary = _avatar_controller.get_model_diagnostics()
+	var text := ""
+
+	# Status badge
+	var status: String = diag.get("status", "none")
+	var total: int = diag.get("total_shapes", 0)
+	if status == "green":
+		text += "[GREEN] Model ready (%d shapes)\n" % total
+	elif status == "yellow":
+		text += "[YELLOW] Partial coverage (%d shapes)\n" % total
+	elif status == "red":
+		text += "[RED] Missing critical shapes (%d shapes)\n" % total
+	else:
+		text += "No model loaded\n"
+
+	# Viseme coverage
+	text += "\n--- VISEMES ---\n"
+	var visemes: Array = diag.get("visemes", [])
+	for v in visemes:
+		var marker: String = "OK" if v["found"] else "MISS"
+		text += "  %s: %s -> %s [%s]\n" % [v["driver"], v["driver"], v["vrm_name"], marker]
+
+	# Expression coverage
+	text += "\n--- EXPRESSIONS ---\n"
+	var expressions: Array = diag.get("expressions", [])
+	for e in expressions:
+		var marker: String = "OK" if e["found"] else "MISS"
+		text += "  %s -> %s [%s]\n" % [e["driver"], e["vrm_name"], marker]
+
+	# Unmapped shapes
+	var unmapped: Array = diag.get("unmapped", [])
+	if unmapped.size() > 0:
+		text += "\n--- UNMAPPED (%d) ---\n" % unmapped.size()
+		for u in unmapped:
+			text += "  %s\n" % u
+
+	diag_label.text = text

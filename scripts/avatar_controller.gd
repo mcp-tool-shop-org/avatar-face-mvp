@@ -208,3 +208,62 @@ func get_blend_shape_list() -> PackedStringArray:
 ## Get current audio bus index (for routing AudioStreamPlayer)
 func get_capture_bus_index() -> int:
 	return _audio_bus_idx
+
+
+## Run diagnostics on current avatar's blend shapes against mapping.json.
+## Returns a Dictionary with keys: visemes, expressions, unmapped, status
+func get_model_diagnostics() -> Dictionary:
+	var result: Dictionary = {
+		"visemes": [],       # Array of {driver, vrm_name, found}
+		"expressions": [],   # Array of {driver, vrm_name, found}
+		"unmapped": [],      # Blend shapes on the model not referenced by mapping
+		"status": "none",    # "green" | "yellow" | "red" | "none"
+		"total_shapes": _blend_shape_names.size(),
+	}
+	if _mesh_instance == null or _blend_shape_names.size() == 0:
+		return result
+
+	var mapping: Dictionary = _config.get_viseme_map()
+	var expr_mapping: Dictionary = _config.get_expression_map()
+	var referenced_names: Dictionary = {}
+
+	# Check viseme coverage
+	var viseme_hits := 0
+	var viseme_total := mapping.size()
+	for driver_key in mapping:
+		var vrm_name: String = mapping[driver_key]
+		var found: bool = _blend_shape_cache.has(vrm_name) or _blend_shape_cache.has(vrm_name.to_lower())
+		result["visemes"].append({"driver": driver_key, "vrm_name": vrm_name, "found": found})
+		referenced_names[vrm_name] = true
+		if found:
+			viseme_hits += 1
+
+	# Check expression coverage
+	var expr_hits := 0
+	var expr_total := expr_mapping.size()
+	for driver_key in expr_mapping:
+		var vrm_name: String = expr_mapping[driver_key]
+		var found: bool = _blend_shape_cache.has(vrm_name) or _blend_shape_cache.has(vrm_name.to_lower())
+		result["expressions"].append({"driver": driver_key, "vrm_name": vrm_name, "found": found})
+		referenced_names[vrm_name] = true
+		if found:
+			expr_hits += 1
+
+	# Find unmapped blend shapes
+	for bs_name in _blend_shape_names:
+		if not referenced_names.has(bs_name):
+			result["unmapped"].append(bs_name)
+
+	# Determine status color
+	var total_required := viseme_total + expr_total
+	var total_found := viseme_hits + expr_hits
+	if total_required == 0:
+		result["status"] = "none"
+	elif viseme_hits >= 3 and total_found >= total_required * 0.8:
+		result["status"] = "green"
+	elif viseme_hits >= 2:
+		result["status"] = "yellow"
+	else:
+		result["status"] = "red"
+
+	return result

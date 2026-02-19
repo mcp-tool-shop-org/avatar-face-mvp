@@ -120,6 +120,37 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Signal: --"
 
+[node name="Sep5" type="HSeparator" parent="DemoUI/Panel/VBox"]
+layout_mode = 2
+
+[node name="DiagButton" type="Button" parent="DemoUI/Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Model Diagnostics"
+
+[node name="DiagPanel" type="PanelContainer" parent="DemoUI"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -380.0
+offset_top = -500.0
+offset_right = -10.0
+offset_bottom = -10.0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="DemoUI/DiagPanel"]
+layout_mode = 2
+
+[node name="DiagLabel" type="Label" parent="DemoUI/DiagPanel/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "(click Model Diagnostics)"
+autowrap_mode = 2
+
 [node name="FpsPanel" type="PanelContainer" parent="DemoUI"]
 layout_mode = 1
 anchors_preset = 1

@@ -64,6 +64,7 @@ func _load_vrm(path: String):
 	_frame_avatar(instance)
 
 	demo_ui.status_label.text = "Loaded: " + path.get_file()
+	demo_ui.on_avatar_loaded()
 	print("Avatar loaded: ", path)
 
 
