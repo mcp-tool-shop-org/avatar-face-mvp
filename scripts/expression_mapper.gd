@@ -43,10 +43,10 @@ func _init():
 
 ## Rebuild mapping from config dictionaries.
 func load_from_config(config: ConfigLoader):
-	var viseme_map := config.get_viseme_map()
-	var expr_map := config.get_expression_map()
+	var viseme_map: Dictionary = config.get_viseme_map()
+	var expr_map: Dictionary = config.get_expression_map()
 	_rebuild_map(viseme_map, expr_map)
-	var smoothing := config.get_smoothing()
+	var smoothing: Dictionary = config.get_smoothing()
 	attack_time = smoothing.get("attack_time", 0.06)
 	release_time = smoothing.get("release_time", 0.12)
 

@@ -121,11 +121,11 @@ func _parse_packet(data: PackedByteArray):
 	stream.data_array = data
 
 	# Face ID
-	var _face_id := stream.get_32()
+	var _face_id: int = stream.get_32()
 
 	# Camera resolution
-	var _cam_w := stream.get_float()
-	var _cam_h := stream.get_float()
+	var _cam_w: float = stream.get_float()
+	var _cam_h: float = stream.get_float()
 
 	# Skip to rotation (quaternion at offset after eye positions)
 	# Right eye 3D (3 floats)
@@ -135,10 +135,10 @@ func _parse_packet(data: PackedByteArray):
 
 	# Head rotation as quaternion
 	if stream.get_position() + 16 <= data.size():
-		var qx := stream.get_float()
-		var qy := stream.get_float()
-		var qz := stream.get_float()
-		var qw := stream.get_float()
+		var qx: float = stream.get_float()
+		var qy: float = stream.get_float()
+		var qz: float = stream.get_float()
+		var qw: float = stream.get_float()
 		var quat := Quaternion(qx, qy, qz, qw)
 		head_rotation = quat.get_euler() * (180.0 / PI)
 
@@ -148,7 +148,7 @@ func _parse_packet(data: PackedByteArray):
 
 	# Confidence
 	if stream.get_position() + 4 <= data.size():
-		var _confidence := stream.get_float()
+		var _confidence: float = stream.get_float()
 
 	# 2D landmarks: 68 points x 2 floats each = 544 bytes
 	var landmarks_size := 68 * 2 * 4
@@ -157,21 +157,21 @@ func _parse_packet(data: PackedByteArray):
 
 	# 3D landmarks: 68 points x 3 floats = 816 bytes (if present)
 	# Check if remaining data is big enough
-	var remaining := data.size() - stream.get_position()
+	var remaining: int = data.size() - stream.get_position()
 	if remaining >= 68 * 3 * 4:
 		stream.seek(stream.get_position() + 68 * 3 * 4)
 		remaining = data.size() - stream.get_position()
 
 	# Blendshape features — typically count (int) then count x float
 	if remaining >= 4:
-		var feature_count := stream.get_32()
+		var feature_count: int = stream.get_32()
 		if feature_count > 0 and feature_count < 100:  # sanity
 			_raw_weights.clear()
 			# OpenSeeFace outputs features in a known order
 			var feature_names := _get_feature_names()
 			for i in mini(feature_count, feature_names.size()):
 				if stream.get_position() + 4 <= data.size():
-					var val := stream.get_float()
+					var val: float = stream.get_float()
 					_raw_weights[feature_names[i]] = clampf(val, 0.0, 1.0)
 
 

@@ -74,14 +74,14 @@ func _load_json(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):
 		push_warning("Config not found: %s — using defaults" % path)
 		return {}
-	var file := FileAccess.open(path, FileAccess.READ)
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	if file == null:
 		push_warning("Cannot open config: %s" % path)
 		return {}
-	var text := file.get_as_text()
+	var text: String = file.get_as_text()
 	file.close()
-	var json := JSON.new()
-	var err := json.parse(text)
+	var json: JSON = JSON.new()
+	var err: int = json.parse(text)
 	if err != OK:
 		push_error("JSON parse error in %s: %s" % [path, json.get_error_message()])
 		return {}

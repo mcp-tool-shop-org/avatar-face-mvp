@@ -1,18 +1,18 @@
 {
   "visemes": {
-    "aa": "viseme_aa",
-    "ih": "viseme_ih",
-    "ou": "viseme_ou",
-    "ee": "viseme_ee",
-    "oh": "viseme_oh"
+    "aa": "lip_a",
+    "ih": "lip_i",
+    "ou": "lip_u",
+    "ee": "lip_e",
+    "oh": "lip_o"
   },
   "expressions": {
-    "blink_left": "blinkLeft",
-    "blink_right": "blinkRight",
-    "happy": "happy",
-    "sad": "sad",
-    "angry": "angry",
-    "surprised": "surprised",
-    "neutral": "neutral"
+    "blink_left": "blink_L",
+    "blink_right": "blink_R",
+    "happy": "face_happy",
+    "sad": "face_sad",
+    "angry": "face_angry",
+    "surprised": "face_surprise",
+    "neutral": "face_relax"
   }
 }

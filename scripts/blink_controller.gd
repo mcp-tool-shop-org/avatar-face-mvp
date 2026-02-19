@@ -24,7 +24,7 @@ func _init():
 
 ## Load timing from config.
 func load_from_config(config: ConfigLoader):
-	var cfg := config.get_blink_config()
+	var cfg: Dictionary = config.get_blink_config()
 	min_interval = cfg.get("min_interval", 2.0)
 	max_interval = cfg.get("max_interval", 6.0)
 	blink_duration = cfg.get("duration", 0.15)

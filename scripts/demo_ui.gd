@@ -164,7 +164,7 @@ func _on_wav_selected(path: String):
 
 
 func _load_wav(path: String) -> AudioStream:
-	var file := FileAccess.open(path, FileAccess.READ)
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	if file == null:
 		return null
 	file.close()
@@ -175,12 +175,12 @@ func _load_wav(path: String) -> AudioStream:
 
 
 func _load_ogg(path: String) -> AudioStream:
-	var file := FileAccess.open(path, FileAccess.READ)
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	if file == null:
 		return null
-	var data := file.get_buffer(file.get_length())
+	var data: PackedByteArray = file.get_buffer(file.get_length())
 	file.close()
-	var ogg := AudioStreamOggVorbis.load_from_buffer(data)
+	var ogg: AudioStreamOggVorbis = AudioStreamOggVorbis.load_from_buffer(data)
 	return ogg
 
 

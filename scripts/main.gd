@@ -14,12 +14,12 @@ func _ready():
 
 
 func _try_autoload_avatar():
-	var dir := DirAccess.open("res://assets/avatars/")
+	var dir: DirAccess = DirAccess.open("res://assets/avatars/")
 	if dir == null:
 		return
 
 	dir.list_dir_begin()
-	var file_name := dir.get_next()
+	var file_name: String = dir.get_next()
 	while file_name != "":
 		if file_name.ends_with(".vrm"):
 			var path := "res://assets/avatars/" + file_name
@@ -56,7 +56,6 @@ func _load_vrm(path: String):
 
 
 func _frame_avatar(avatar: Node3D):
-	# VRM models are typically ~1.6m tall, face is around y=1.4
-	# Position camera to look at the face
-	camera.position = Vector3(0, 1.4, 1.0)
-	camera.look_at(Vector3(0, 1.4, 0))
+	# Tight close-up on face for lipsync demo
+	camera.position = Vector3(0, 1.42, 0.32)
+	camera.look_at(Vector3(0, 1.38, 0))

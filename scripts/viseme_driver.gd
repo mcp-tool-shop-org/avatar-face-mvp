@@ -37,7 +37,7 @@ func _init():
 func load_from_config(config: ConfigLoader):
 	noise_gate = config.get_noise_gate()
 	sensitivity = config.get_sensitivity()
-	var cfg_bands := config.get_viseme_bands()
+	var cfg_bands: Dictionary = config.get_viseme_bands()
 	if cfg_bands.size() > 0:
 		_bands.clear()
 		for key in cfg_bands:

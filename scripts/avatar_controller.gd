@@ -46,7 +46,7 @@ func _apply_config():
 	_viseme_driver.load_from_config(_config)
 	_blink_controller.load_from_config(_config)
 	_expression_mapper.load_from_config(_config)
-	var osf_cfg := _config.get_openseeface_config()
+	var osf_cfg: Dictionary = _config.get_openseeface_config()
 	_osf_driver.host = osf_cfg.get("host", "127.0.0.1")
 	_osf_driver.port = int(osf_cfg.get("port", 11573))
 
@@ -86,11 +86,11 @@ func setup_avatar(avatar: Node3D):
 	if _mesh_instance and _mesh_instance.mesh:
 		_blend_shape_names.clear()
 		for i in _mesh_instance.mesh.get_blend_shape_count():
-			var name := _mesh_instance.mesh.get_blend_shape_name(i)
-			_blend_shape_names.append(name)
+			var bs_name: String = _mesh_instance.mesh.get_blend_shape_name(i)
+			_blend_shape_names.append(bs_name)
 			# Pre-cache both exact and lowercase lookups
-			_blend_shape_cache[name] = i
-			_blend_shape_cache[name.to_lower()] = i
+			_blend_shape_cache[bs_name] = i
+			_blend_shape_cache[bs_name.to_lower()] = i
 		print("Found %d blend shapes: %s" % [_blend_shape_names.size(), _blend_shape_names])
 	else:
 		push_warning("No MeshInstance3D with blend shapes found in avatar")
