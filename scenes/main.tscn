@@ -1,0 +1,134 @@
+[gd_scene load_steps=4 format=3 uid="uid://main_scene"]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/avatar_controller.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/demo_ui.gd" id="3"]
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 1.0)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.25, 0.433, 0, 0.866, 0.5, -0.5, -0.433, 0.75, 2, 3, 1)
+light_energy = 0.8
+shadow_enabled = true
+
+[node name="FillLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, 0.25, -0.433, 0, 0.866, 0.5, 0.5, -0.433, 0.75, -2, 2, 1)
+light_energy = 0.3
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+
+[node name="AvatarController" type="Node3D" parent="."]
+script = ExtResource("2")
+
+[node name="AvatarMount" type="Node3D" parent="AvatarController"]
+
+[node name="DemoUI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("3")
+avatar_controller_path = NodePath("../AvatarController")
+
+[node name="Panel" type="PanelContainer" parent="DemoUI"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -310.0
+offset_right = 280.0
+offset_bottom = -10.0
+
+[node name="VBox" type="VBoxContainer" parent="DemoUI/Panel"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="DemoUI/Panel/VBox"]
+layout_mode = 2
+text = "Avatar Face MVP"
+
+[node name="Sep1" type="HSeparator" parent="DemoUI/Panel/VBox"]
+layout_mode = 2
+
+[node name="MicButton" type="Button" parent="DemoUI/Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Start Mic"
+
+[node name="WavButton" type="Button" parent="DemoUI/Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Load WAV/OGG"
+
+[node name="Sep2" type="HSeparator" parent="DemoUI/Panel/VBox"]
+layout_mode = 2
+
+[node name="EmotionOption" type="OptionButton" parent="DemoUI/Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="EmotionLabel" type="Label" parent="DemoUI/Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Emotion: 0%"
+
+[node name="EmotionSlider" type="HSlider" parent="DemoUI/Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Sep3" type="HSeparator" parent="DemoUI/Panel/VBox"]
+layout_mode = 2
+
+[node name="SensitivityLabel" type="Label" parent="DemoUI/Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Sensitivity: 8.0"
+
+[node name="SensitivitySlider" type="HSlider" parent="DemoUI/Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Sep4" type="HSeparator" parent="DemoUI/Panel/VBox"]
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="DemoUI/Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Ready"
+autowrap_mode = 2
+
+[node name="FpsPanel" type="PanelContainer" parent="DemoUI"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -120.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 35.0
+
+[node name="FpsLabel" type="Label" parent="DemoUI/FpsPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "FPS: --"
+
+[node name="DebugPanel" type="PanelContainer" parent="DemoUI"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -250.0
+offset_top = 45.0
+offset_right = -10.0
+offset_bottom = 320.0
+
+[node name="BlendDebug" type="Label" parent="DemoUI/DebugPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "(no active weights)"
+autowrap_mode = 2
