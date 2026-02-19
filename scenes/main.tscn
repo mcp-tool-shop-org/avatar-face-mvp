@@ -190,7 +190,7 @@ anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 290.0
-offset_top = -250.0
+offset_top = -290.0
 offset_right = 650.0
 offset_bottom = -10.0
 
@@ -216,6 +216,10 @@ layout_mode = 2
 text = "X"
 
 [node name="TtsVoiceOption" type="OptionButton" parent="DemoUI/TtsPanel/TtsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TtsEmotionOption" type="OptionButton" parent="DemoUI/TtsPanel/TtsVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 

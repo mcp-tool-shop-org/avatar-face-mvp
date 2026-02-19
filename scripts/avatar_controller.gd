@@ -52,6 +52,13 @@ var _head_pose_release := 0.15
 var _prev_head_rotation := Vector3.ZERO
 const HEAD_SACCADE_THRESHOLD := 8.0  # degrees — triggers blink + eye saccade
 
+# Expression target ramping (driven by aside performance cues)
+var _expression_target := ""         # e.g., "happy", "sad"
+var _expression_target_weight := 0.0 # target value (0-1)
+var _expression_current_weight := 0.0 # smoothed current value
+var _expression_attack := 0.3        # seconds — ramp up (200-400ms)
+var _expression_release := 1.0       # seconds — ramp down (800-1500ms)
+
 
 func _ready():
 	_apply_config()
@@ -236,9 +243,26 @@ func _process(delta: float):
 
 		_idle_controller.apply_head_pose(_smoothed_head_rotation)
 
-	# === 2. Add emotion from slider ===
+	# === 2. Add emotion from slider + aside expression target ===
 	if current_emotion.length() > 0 and emotion_weight > 0.0:
 		_merged_weights[current_emotion] = emotion_weight
+
+	# Ramp aside expression target (smooth attack/release)
+	if _expression_target.length() > 0:
+		if _expression_current_weight < _expression_target_weight:
+			_expression_current_weight = lerpf(_expression_current_weight,
+				_expression_target_weight,
+				1.0 - exp(-delta / maxf(_expression_attack, 0.01)))
+		else:
+			_expression_current_weight = lerpf(_expression_current_weight,
+				_expression_target_weight,
+				1.0 - exp(-delta / maxf(_expression_release, 0.01)))
+		if _expression_current_weight < 0.005:
+			_expression_current_weight = 0.0
+		if _expression_current_weight > 0.005:
+			# Use max so manual slider can still override
+			var existing: float = _merged_weights.get(_expression_target, 0.0)
+			_merged_weights[_expression_target] = maxf(existing, _expression_current_weight)
 
 	# === 3. Eye gaze (micro-saccades) ===
 	_gaze_controller.update(delta, _idle_controller)
@@ -324,6 +348,46 @@ func get_capture_bus_index() -> int:
 ## Get current speech energy (for debug UI)
 func get_speech_energy() -> float:
 	return _speech_energy_smooth
+
+
+## Set expression target from aside performance cue.
+## Ramps smoothly to the target weight over attack_time seconds.
+func set_expression_target(emotion: String, weight: float = 0.5,
+		attack: float = 0.3, release: float = 1.0):
+	if emotion != _expression_target and _expression_current_weight > 0.01:
+		# Different emotion requested — start releasing old one by setting target to 0
+		# then switch once it's low enough
+		_expression_target_weight = 0.0
+		_expression_release = 0.2  # fast cross-fade release
+		# Queue the new emotion via deferred call
+		call_deferred("_switch_expression_target", emotion, weight, attack, release)
+		return
+	_expression_target = emotion
+	_expression_target_weight = clampf(weight, 0.0, 1.0)
+	_expression_attack = attack
+	_expression_release = release
+
+
+func _switch_expression_target(emotion: String, weight: float, attack: float, release: float):
+	_expression_target = emotion
+	_expression_target_weight = clampf(weight, 0.0, 1.0)
+	_expression_attack = attack
+	_expression_release = release
+
+
+## Start releasing current expression target (gentle fade out).
+func clear_expression_target():
+	_expression_target_weight = 0.0
+	# Keep _expression_release as-is for natural fade
+
+
+## Get current expression target info (for debug UI)
+func get_expression_target_info() -> Dictionary:
+	return {
+		"emotion": _expression_target,
+		"target": _expression_target_weight,
+		"current": _expression_current_weight,
+	}
 
 
 ## ARKit-style blend shape names for auto-detection

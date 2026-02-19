@@ -12,6 +12,8 @@ signal playback_finished
 signal error_received(message: String)
 signal status_received(data: Dictionary)
 signal voices_received(voices: Array)
+signal performance_cue_received(cue: Dictionary)
+signal aside_available_changed(available: bool)
 
 @export var bridge_url := "ws://localhost:9200"
 @export var auto_connect := false
@@ -24,6 +26,7 @@ var _audio_player: AudioStreamPlayer = null
 var _audio_queue: Array = []  # Queue of {path, voice, text, durationMs}
 var _is_playing := false
 var _available_voices: Array = []
+var _aside_available := false
 
 ## Reconnect timer
 var _reconnect_timer := 0.0
@@ -111,13 +114,18 @@ func get_available_voices() -> Array:
 
 
 ## Send a speak request to the bridge.
-func speak(text: String, voice: String = "", format: String = "ogg"):
+## emotion/intensity are forwarded so the bridge can push an aside performance cue.
+func speak(text: String, voice: String = "", format: String = "ogg",
+		emotion: String = "", intensity: float = 0.5):
 	if not _connected:
 		error_received.emit("Not connected to TTS bridge")
 		return
 	var msg := {"type": "speak", "text": text, "format": format}
 	if voice != "":
 		msg["voice"] = voice
+	if emotion != "":
+		msg["emotion"] = emotion
+		msg["intensity"] = intensity
 	_send(msg)
 
 
@@ -199,6 +207,50 @@ func _handle_message(text: String):
 			_available_voices = voices
 			voices_received.emit(voices)
 			status_received.emit(msg)
+			# Track aside availability from status response
+			var aside_avail: bool = msg.get("asideAvailable", false)
+			if aside_avail != _aside_available:
+				_aside_available = aside_avail
+				aside_available_changed.emit(_aside_available)
+
+		"aside.item":
+			# Performance cue from aside inbox
+			var meta: Dictionary = msg.get("meta", {})
+			var cue := {
+				"id": msg.get("id", ""),
+				"text": msg.get("text", ""),
+				"priority": msg.get("priority", "med"),
+				"emotion": meta.get("emotion", "neutral"),
+				"intensity": float(meta.get("intensity", 0.5)),
+				"mode": meta.get("mode", ""),
+				"voice": meta.get("voice", ""),
+				"audioPath": meta.get("audioPath", ""),
+				"durationMs": int(meta.get("durationMs", 0)),
+				"tags": msg.get("tags", []),
+			}
+			performance_cue_received.emit(cue)
+
+		"aside.inbox":
+			var items: Array = msg.get("items", [])
+			for item in items:
+				var item_meta: Dictionary = item.get("meta", {})
+				var cue := {
+					"id": item.get("id", ""),
+					"text": item.get("text", ""),
+					"priority": item.get("priority", "med"),
+					"emotion": item_meta.get("emotion", "neutral"),
+					"intensity": float(item_meta.get("intensity", 0.5)),
+					"mode": item_meta.get("mode", ""),
+					"tags": item.get("tags", []),
+				}
+				performance_cue_received.emit(cue)
+
+		"aside.status":
+			var avail: bool = msg.get("available", false)
+			if avail != _aside_available:
+				_aside_available = avail
+				aside_available_changed.emit(_aside_available)
+			status_received.emit(msg)
 
 
 func _play_next_in_queue():
@@ -227,6 +279,43 @@ func _play_next_in_queue():
 	_is_playing = true
 	playback_started.emit(path)
 	print("TtsController: playing %s" % path.get_file())
+
+
+## --- Aside helpers ---
+
+func is_aside_available() -> bool:
+	return _aside_available
+
+
+## Push a performance cue to aside via bridge.
+func push_aside(text: String, emotion: String = "neutral", intensity: float = 0.5,
+		tags: Array = []):
+	if not _connected:
+		return
+	var msg := {
+		"type": "aside",
+		"action": "push",
+		"text": text,
+		"priority": "med",
+		"emotion": emotion,
+		"intensity": intensity,
+		"tags": tags,
+	}
+	_send(msg)
+
+
+## Request the current aside inbox contents.
+func read_inbox():
+	if not _connected:
+		return
+	_send({"type": "aside", "action": "inbox"})
+
+
+## Clear the aside inbox.
+func clear_inbox():
+	if not _connected:
+		return
+	_send({"type": "aside", "action": "clear"})
 
 
 ## Load an audio file from an absolute filesystem path.

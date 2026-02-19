@@ -36,8 +36,10 @@ func _ready():
 		lib_panel.setup(catalog, download_mgr, self)
 	lib_panel.avatar_load_requested.connect(load_avatar_by_path)
 
-	# Wire up TTS controller
+	# Wire up TTS controller + aside performance cues
 	demo_ui.setup_tts(tts_controller)
+	tts_controller.performance_cue_received.connect(_on_performance_cue)
+	tts_controller.playback_finished.connect(_on_tts_playback_finished)
 
 	if _avatar_names.size() > 0:
 		load_avatar(0)
@@ -162,3 +164,18 @@ func _frame_avatar(avatar: Node3D):
 	_cam_height = 1.42
 	_cam_look_y = 1.38
 	_apply_camera()
+
+
+## Handle aside performance cue — set expression target on avatar controller
+func _on_performance_cue(cue: Dictionary):
+	var emotion: String = cue.get("emotion", "neutral")
+	var intensity: float = cue.get("intensity", 0.5)
+	if emotion == "" or emotion == "neutral":
+		return
+	avatar_controller.set_expression_target(emotion, intensity, 0.3, 1.0)
+	print("Performance cue: %s (%.0f%%)" % [emotion, intensity * 100])
+
+
+## When TTS playback finishes, gently release the expression
+func _on_tts_playback_finished():
+	avatar_controller.clear_expression_target()

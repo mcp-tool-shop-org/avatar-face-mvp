@@ -49,6 +49,7 @@ const DEBUG_UPDATE_INTERVAL := 3
 @onready var tts_text_edit: TextEdit = %TtsTextEdit
 @onready var tts_speak_btn: Button = %TtsSpeakBtn
 @onready var tts_stop_btn: Button = %TtsStopBtn
+@onready var tts_emotion_option: OptionButton = %TtsEmotionOption
 @onready var tts_status: Label = %TtsStatus
 
 var _tts_controller: TtsController = null
@@ -113,6 +114,11 @@ func _ready():
 	var default_voices := ["am_fenrir", "af_sky", "bm_george", "bf_emma", "af_jessica", "am_eric"]
 	for v in default_voices:
 		tts_voice_option.add_item(v)
+
+	# Populate TTS emotion dropdown
+	var tts_emotions := ["(none)", "happy", "sad", "angry", "surprised"]
+	for e in tts_emotions:
+		tts_emotion_option.add_item(e)
 
 
 func _get_main() -> Node3D:
@@ -471,6 +477,7 @@ func setup_tts(tts: TtsController):
 	_tts_controller.playback_finished.connect(_on_tts_playback_finished)
 	_tts_controller.error_received.connect(_on_tts_error)
 	_tts_controller.voices_received.connect(_on_tts_voices)
+	_tts_controller.aside_available_changed.connect(_on_aside_available)
 
 
 func _on_tts_toggle():
@@ -500,7 +507,10 @@ func _on_tts_speak():
 		tts_status.text = "Enter text first"
 		return
 	var voice: String = tts_voice_option.get_item_text(tts_voice_option.selected) if tts_voice_option.selected >= 0 else ""
-	_tts_controller.speak(text, voice)
+	var emotion := ""
+	if tts_emotion_option.selected > 0:  # 0 = "(none)"
+		emotion = tts_emotion_option.get_item_text(tts_emotion_option.selected)
+	_tts_controller.speak(text, voice, "ogg", emotion, 0.6)
 	tts_speak_btn.disabled = true
 	tts_stop_btn.disabled = false
 
@@ -514,9 +524,10 @@ func _on_tts_stop():
 
 func _on_tts_connected():
 	tts_connect_btn.text = "Disconnect"
-	tts_status.text = "Connected — ready to speak"
 	tts_speak_btn.disabled = false
 	status_label.text = "TTS bridge connected"
+	# Aside status updates once we get the status response
+	tts_status.text = "Connected — ready to speak"
 
 
 func _on_tts_disconnected():
@@ -562,3 +573,10 @@ func _on_tts_voices(voices: Array):
 				tts_voice_option.selected = i
 				return
 		tts_voice_option.selected = 0
+
+
+func _on_aside_available(available: bool):
+	if available:
+		tts_status.text = "Connected — aside active (expression cues)"
+	else:
+		tts_status.text = "Connected — aside unavailable"
