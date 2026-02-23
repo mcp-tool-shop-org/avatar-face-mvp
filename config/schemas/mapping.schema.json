@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mapping.schema.json",
+  "title": "Avatar Blend Shape Mapping",
+  "description": "Validates mapping profiles — maps internal viseme/expression names to VRM blend shape targets. All 5 visemes and both blink targets are required.",
+  "type": "object",
+  "required": ["visemes", "expressions"],
+  "additionalProperties": false,
+  "properties": {
+    "visemes": {
+      "type": "object",
+      "description": "Maps the 5 core viseme slots to blend shape target names",
+      "required": ["aa", "ih", "ou", "ee", "oh"],
+      "additionalProperties": false,
+      "properties": {
+        "aa": { "type": "string", "minLength": 1 },
+        "ih": { "type": "string", "minLength": 1 },
+        "ou": { "type": "string", "minLength": 1 },
+        "ee": { "type": "string", "minLength": 1 },
+        "oh": { "type": "string", "minLength": 1 }
+      }
+    },
+    "expressions": {
+      "type": "object",
+      "description": "Maps expression names to blend shape target names. blink_left and blink_right are required.",
+      "required": ["blink_left", "blink_right"],
+      "additionalProperties": { "type": "string", "minLength": 1 },
+      "properties": {
+        "blink_left": { "type": "string", "minLength": 1 },
+        "blink_right": { "type": "string", "minLength": 1 },
+        "happy": { "type": "string", "minLength": 1 },
+        "sad": { "type": "string", "minLength": 1 },
+        "angry": { "type": "string", "minLength": 1 },
+        "surprised": { "type": "string", "minLength": 1 },
+        "neutral": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

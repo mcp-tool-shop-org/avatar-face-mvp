@@ -37,7 +37,9 @@ func fetch_collections():
 		catalog_error.emit("Failed to start collections request")
 
 
-func _on_collections_received(result: int, code: int, headers: PackedStringArray, body: PackedByteArray, http: HTTPRequest):
+func _on_collections_received(
+	result: int, code: int, headers: PackedStringArray, body: PackedByteArray, http: HTTPRequest
+):
 	http.queue_free()
 	_is_loading = false
 
@@ -58,13 +60,18 @@ func _on_collections_received(result: int, code: int, headers: PackedStringArray
 	_collections.clear()
 	for item in json.data:
 		if item is Dictionary and item.get("is_public", false):
-			_collections.append({
-				"id": item.get("id", ""),
-				"name": item.get("name", "Unknown"),
-				"description": item.get("description", ""),
-				"license": item.get("license", ""),
-				"data_file": item.get("avatar_data_file", ""),
-			})
+			(
+				_collections
+				. append(
+					{
+						"id": item.get("id", ""),
+						"name": item.get("name", "Unknown"),
+						"description": item.get("description", ""),
+						"license": item.get("license", ""),
+						"data_file": item.get("avatar_data_file", ""),
+					}
+				)
+			)
 
 	collections_loaded.emit(_collections)
 
@@ -94,7 +101,14 @@ func fetch_avatars(collection_id: String):
 		catalog_error.emit("Failed to start avatars request")
 
 
-func _on_avatars_received(result: int, code: int, headers: PackedStringArray, body: PackedByteArray, http: HTTPRequest, collection_id: String):
+func _on_avatars_received(
+	result: int,
+	code: int,
+	headers: PackedStringArray,
+	body: PackedByteArray,
+	http: HTTPRequest,
+	collection_id: String
+):
 	http.queue_free()
 
 	if result != HTTPRequest.RESULT_SUCCESS or code != 200:
@@ -117,14 +131,19 @@ func _on_avatars_received(result: int, code: int, headers: PackedStringArray, bo
 			var model_url: String = item.get("model_file_url", "")
 			if model_url == "":
 				continue
-			avatars.append({
-				"id": item.get("id", ""),
-				"name": item.get("name", "Unknown"),
-				"model_url": model_url,
-				"thumbnail_url": item.get("thumbnail_url", ""),
-				"description": item.get("description", ""),
-				"collection_id": collection_id,
-			})
+			(
+				avatars
+				. append(
+					{
+						"id": item.get("id", ""),
+						"name": item.get("name", "Unknown"),
+						"model_url": model_url,
+						"thumbnail_url": item.get("thumbnail_url", ""),
+						"description": item.get("description", ""),
+						"collection_id": collection_id,
+					}
+				)
+			)
 
 	_avatar_cache[collection_id] = avatars
 	avatars_loaded.emit(collection_id, avatars)

@@ -110,6 +110,7 @@ func load_avatar_by_path(path: String):
 
 var _pending_load_path := ""
 
+
 func _load_vrm(path: String):
 	demo_ui.status_label.text = "Loading: " + path.get_file() + "..."
 

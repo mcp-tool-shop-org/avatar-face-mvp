@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tuning.schema.json",
+  "title": "Avatar Tuning Config",
+  "description": "Validates tuning.json — FFT viseme bands, smoothing, blink, idle, gaze, head pose, and OpenSeeFace settings",
+  "type": "object",
+  "required": ["smoothing", "viseme_bands", "noise_gate", "sensitivity", "blink", "idle", "gaze", "head_pose", "openseeface"],
+  "additionalProperties": false,
+  "properties": {
+    "smoothing": {
+      "type": "object",
+      "required": ["attack_time", "release_time"],
+      "additionalProperties": false,
+      "properties": {
+        "attack_time": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "release_time": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 }
+      }
+    },
+    "viseme_bands": {
+      "type": "object",
+      "description": "Each band is a [min_hz, max_hz] pair. All 5 visemes required.",
+      "required": ["aa", "ih", "ou", "ee", "oh"],
+      "additionalProperties": false,
+      "properties": {
+        "aa": { "$ref": "#/$defs/freq_band" },
+        "ih": { "$ref": "#/$defs/freq_band" },
+        "ou": { "$ref": "#/$defs/freq_band" },
+        "ee": { "$ref": "#/$defs/freq_band" },
+        "oh": { "$ref": "#/$defs/freq_band" }
+      }
+    },
+    "noise_gate": { "type": "number", "minimum": 0, "maximum": 1 },
+    "sensitivity": { "type": "number", "exclusiveMinimum": 0 },
+    "blink": {
+      "type": "object",
+      "required": ["min_interval", "max_interval", "duration"],
+      "additionalProperties": false,
+      "properties": {
+        "min_interval": { "type": "number", "exclusiveMinimum": 0 },
+        "max_interval": { "type": "number", "exclusiveMinimum": 0 },
+        "duration": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "asymmetry_lead": { "type": "number", "minimum": 0 },
+        "saccade_blink_chance": { "type": "number", "minimum": 0, "maximum": 1 },
+        "speech_pause_blink_chance": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "idle": {
+      "type": "object",
+      "required": ["breath_amplitude", "breath_period"],
+      "additionalProperties": false,
+      "properties": {
+        "breath_amplitude": { "type": "number", "minimum": 0 },
+        "breath_period": { "type": "number", "exclusiveMinimum": 0 },
+        "sway_amplitude_x": { "type": "number", "minimum": 0 },
+        "sway_amplitude_z": { "type": "number", "minimum": 0 },
+        "sway_period_x": { "type": "number", "exclusiveMinimum": 0 },
+        "sway_period_z": { "type": "number", "exclusiveMinimum": 0 },
+        "head_drift_amplitude": { "type": "number", "minimum": 0 },
+        "head_drift_period": { "type": "number", "exclusiveMinimum": 0 },
+        "shoulder_breath_amplitude": { "type": "number", "minimum": 0 }
+      }
+    },
+    "gaze": {
+      "type": "object",
+      "required": ["saccade_min_interval", "saccade_max_interval", "saccade_amplitude", "max_yaw", "max_pitch", "eye_speed"],
+      "additionalProperties": false,
+      "properties": {
+        "saccade_min_interval": { "type": "number", "exclusiveMinimum": 0 },
+        "saccade_max_interval": { "type": "number", "exclusiveMinimum": 0 },
+        "saccade_amplitude": { "type": "number", "exclusiveMinimum": 0 },
+        "max_yaw": { "type": "number", "exclusiveMinimum": 0 },
+        "max_pitch": { "type": "number", "exclusiveMinimum": 0 },
+        "eye_speed": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "head_pose": {
+      "type": "object",
+      "required": ["attack", "release", "max_yaw", "max_pitch", "max_roll"],
+      "additionalProperties": false,
+      "properties": {
+        "attack": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "release": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "saccade_threshold": { "type": "number", "minimum": 0 },
+        "max_yaw": { "type": "number", "exclusiveMinimum": 0 },
+        "max_pitch": { "type": "number", "exclusiveMinimum": 0 },
+        "max_roll": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "openseeface": {
+      "type": "object",
+      "required": ["host", "port"],
+      "additionalProperties": false,
+      "properties": {
+        "host": { "type": "string", "minLength": 1 },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 }
+      }
+    }
+  },
+  "$defs": {
+    "freq_band": {
+      "type": "array",
+      "description": "Frequency band as [min_hz, max_hz]",
+      "items": { "type": "number", "minimum": 0 },
+      "minItems": 2,
+      "maxItems": 2
+    }
+  }
+}

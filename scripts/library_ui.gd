@@ -195,10 +195,11 @@ func _create_browse_card(avatar: Dictionary) -> VBoxContainer:
 		var dl_btn := Button.new()
 		dl_btn.text = "Download"
 		dl_btn.name = "DLBtn_" + avatar.get("id", "").left(8)
-		dl_btn.pressed.connect(func():
-			dl_btn.text = "Queued..."
-			dl_btn.disabled = true
-			_download_mgr.queue_download(avatar_name, model_url, collection_id)
+		dl_btn.pressed.connect(
+			func():
+				dl_btn.text = "Queued..."
+				dl_btn.disabled = true
+				_download_mgr.queue_download(avatar_name, model_url, collection_id)
 		)
 		card.add_child(dl_btn)
 

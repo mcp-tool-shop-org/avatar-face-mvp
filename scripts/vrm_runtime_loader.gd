@@ -8,7 +8,9 @@ const vrm_extension_class = preload("res://addons/vrm/vrm_extension.gd")
 const VRMC_vrm_class = preload("res://addons/vrm/1.0/VRMC_vrm.gd")
 const VRMC_node_constraint_class = preload("res://addons/vrm/1.0/VRMC_node_constraint.gd")
 const VRMC_springBone_class = preload("res://addons/vrm/1.0/VRMC_springBone.gd")
-const VRMC_materials_hdr_class = preload("res://addons/vrm/1.0/VRMC_materials_hdr_emissiveMultiplier.gd")
+const VRMC_materials_hdr_class = preload(
+	"res://addons/vrm/1.0/VRMC_materials_hdr_emissiveMultiplier.gd"
+)
 const VRMC_materials_mtoon_class = preload("res://addons/vrm/1.0/VRMC_materials_mtoon.gd")
 
 ## EditorSceneFormatImporter.IMPORT_USE_NAMED_SKIN_BINDS = 16

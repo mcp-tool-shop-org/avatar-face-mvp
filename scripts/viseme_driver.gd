@@ -25,7 +25,11 @@ var _spectrum: AudioEffectSpectrumAnalyzerInstance = null
 
 ## Reusable weights dictionary — never reallocated
 var _weights: Dictionary = {
-	"aa": 0.0, "ih": 0.0, "ou": 0.0, "ee": 0.0, "oh": 0.0,
+	"aa": 0.0,
+	"ih": 0.0,
+	"ou": 0.0,
+	"ee": 0.0,
+	"oh": 0.0,
 }
 
 
@@ -67,9 +71,7 @@ func get_viseme_weights() -> Dictionary:
 
 	for viseme_name in _bands:
 		var band: Vector2 = _bands[viseme_name]
-		var magnitude: float = _spectrum.get_magnitude_for_frequency_range(
-			band.x, band.y
-		).length()
+		var magnitude: float = _spectrum.get_magnitude_for_frequency_range(band.x, band.y).length()
 
 		if magnitude < noise_gate:
 			magnitude = 0.0

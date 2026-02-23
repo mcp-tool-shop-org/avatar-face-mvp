@@ -52,7 +52,6 @@ var _drift_timer := 0.0
 var _drift_interval := 4.0  # seconds between new targets
 var _rng := RandomNumberGenerator.new()
 
-
 ## Common bone name variants across VRM formats
 const BONE_ALIASES := {
 	"Head": ["Head", "head", "J_Bip_C_Head", "head_x", "头"],
@@ -61,8 +60,24 @@ const BONE_ALIASES := {
 	"Chest": ["Chest", "chest", "J_Bip_C_Chest", "chest_x", "Spine1"],
 	"UpperChest": ["UpperChest", "upperchest", "upper_chest", "J_Bip_C_UpperChest", "Spine2"],
 	"Hips": ["Hips", "hips", "J_Bip_C_Hips", "hip", "Root"],
-	"LeftShoulder": ["LeftShoulder", "leftshoulder", "left_shoulder", "J_Bip_L_Shoulder", "shoulder_L", "shoulder.L"],
-	"RightShoulder": ["RightShoulder", "rightshoulder", "right_shoulder", "J_Bip_R_Shoulder", "shoulder_R", "shoulder.R"],
+	"LeftShoulder":
+	[
+		"LeftShoulder",
+		"leftshoulder",
+		"left_shoulder",
+		"J_Bip_L_Shoulder",
+		"shoulder_L",
+		"shoulder.L"
+	],
+	"RightShoulder":
+	[
+		"RightShoulder",
+		"rightshoulder",
+		"right_shoulder",
+		"J_Bip_R_Shoulder",
+		"shoulder_R",
+		"shoulder.R"
+	],
 	"LeftEye": ["LeftEye", "lefteye", "left_eye", "J_Adj_L_FaceEye", "eye_L", "eye.L", "Eye_L"],
 	"RightEye": ["RightEye", "righteye", "right_eye", "J_Adj_R_FaceEye", "eye_R", "eye.R", "Eye_R"],
 }
@@ -106,8 +121,12 @@ func setup(avatar: Node3D):
 
 	_active = _head_idx >= 0 or _spine_idx >= 0 or _chest_idx >= 0
 	if _active:
-		print("IdleController: active (head=%d, neck=%d, spine=%d, chest=%d, L_eye=%d, R_eye=%d)" % [
-			_head_idx, _neck_idx, _spine_idx, _chest_idx, _left_eye_idx, _right_eye_idx])
+		print(
+			(
+				"IdleController: active (head=%d, neck=%d, spine=%d, chest=%d, L_eye=%d, R_eye=%d)"
+				% [_head_idx, _neck_idx, _spine_idx, _chest_idx, _left_eye_idx, _right_eye_idx]
+			)
+		)
 	else:
 		# Log available bones for debugging
 		print("IdleController: INACTIVE — bones found: ", _bone_names)
@@ -146,9 +165,7 @@ func update(delta: float):
 		_drift_timer = 0.0
 		_drift_interval = _rng.randf_range(3.0, 8.0)
 		_drift_target = Vector3(
-			_rng.randf_range(-0.5, 0.5),
-			_rng.randf_range(-0.5, 0.5),
-			_rng.randf_range(-0.2, 0.2)
+			_rng.randf_range(-0.5, 0.5), _rng.randf_range(-0.5, 0.5), _rng.randf_range(-0.2, 0.2)
 		)
 	# Smooth drift toward target
 	_drift_offset = _drift_offset.lerp(_drift_target, delta * 0.4)
@@ -168,11 +185,13 @@ func update(delta: float):
 	if shoulder_breath_amplitude > 0.0:
 		var shoulder_angle := breath * deg_to_rad(shoulder_breath_amplitude)
 		if _left_shoulder_idx >= 0:
-			_skeleton.set_bone_pose_rotation(_left_shoulder_idx,
-				Quaternion.from_euler(Vector3(0.0, 0.0, -shoulder_angle)))
+			_skeleton.set_bone_pose_rotation(
+				_left_shoulder_idx, Quaternion.from_euler(Vector3(0.0, 0.0, -shoulder_angle))
+			)
 		if _right_shoulder_idx >= 0:
-			_skeleton.set_bone_pose_rotation(_right_shoulder_idx,
-				Quaternion.from_euler(Vector3(0.0, 0.0, shoulder_angle)))
+			_skeleton.set_bone_pose_rotation(
+				_right_shoulder_idx, Quaternion.from_euler(Vector3(0.0, 0.0, shoulder_angle))
+			)
 
 	# Micro-sway: subtle rotation on spine + drift noise
 	if _spine_idx >= 0:
@@ -187,7 +206,9 @@ func update(delta: float):
 	# This is the default idle — apply_head_pose() overrides it when tracker is on
 	if _head_idx >= 0:
 		var drift_y := sin(_time * TAU / head_drift_period) * deg_to_rad(head_drift_amplitude)
-		var drift_x := sin(_time * TAU / (head_drift_period * 1.3)) * deg_to_rad(head_drift_amplitude * 0.5)
+		var drift_x := (
+			sin(_time * TAU / (head_drift_period * 1.3)) * deg_to_rad(head_drift_amplitude * 0.5)
+		)
 		drift_y += deg_to_rad(_drift_offset.y * 0.8)
 		drift_x += deg_to_rad(_drift_offset.x * 0.4)
 		var drift_rot := Quaternion.from_euler(Vector3(drift_x, drift_y, 0.0))
@@ -209,9 +230,7 @@ func apply_head_pose(rotation_degrees: Vector3):
 	# Head gets 70%
 	if _head_idx >= 0:
 		var head_euler := Vector3(
-			deg_to_rad(pitch * 0.7),
-			deg_to_rad(yaw * 0.7),
-			deg_to_rad(roll * 0.7)
+			deg_to_rad(pitch * 0.7), deg_to_rad(yaw * 0.7), deg_to_rad(roll * 0.7)
 		)
 		# Add subtle idle drift on top (reduced when tracking)
 		var drift_y := sin(_time * TAU / head_drift_period) * deg_to_rad(head_drift_amplitude * 0.2)
@@ -221,9 +240,7 @@ func apply_head_pose(rotation_degrees: Vector3):
 	# Neck gets 30%
 	if _neck_idx >= 0:
 		var neck_euler := Vector3(
-			deg_to_rad(pitch * 0.3),
-			deg_to_rad(yaw * 0.3),
-			deg_to_rad(roll * 0.3)
+			deg_to_rad(pitch * 0.3), deg_to_rad(yaw * 0.3), deg_to_rad(roll * 0.3)
 		)
 		_skeleton.set_bone_pose_rotation(_neck_idx, Quaternion.from_euler(neck_euler))
 

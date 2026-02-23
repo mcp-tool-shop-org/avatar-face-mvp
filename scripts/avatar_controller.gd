@@ -53,11 +53,11 @@ var _prev_head_rotation := Vector3.ZERO
 const HEAD_SACCADE_THRESHOLD := 8.0  # degrees — triggers blink + eye saccade
 
 # Expression target ramping (driven by aside performance cues)
-var _expression_target := ""         # e.g., "happy", "sad"
-var _expression_target_weight := 0.0 # target value (0-1)
-var _expression_current_weight := 0.0 # smoothed current value
-var _expression_attack := 0.3        # seconds — ramp up (200-400ms)
-var _expression_release := 1.0       # seconds — ramp down (800-1500ms)
+var _expression_target := ""  # e.g., "happy", "sad"
+var _expression_target_weight := 0.0  # target value (0-1)
+var _expression_current_weight := 0.0  # smoothed current value
+var _expression_attack := 0.3  # seconds — ramp up (200-400ms)
+var _expression_release := 1.0  # seconds — ramp down (800-1500ms)
 
 
 func _ready():
@@ -181,11 +181,13 @@ func _process(delta: float):
 
 		# Smooth speech energy (asymmetric: fast attack, slow release)
 		if _speech_energy > _speech_energy_smooth:
-			_speech_energy_smooth = lerpf(_speech_energy_smooth, _speech_energy,
-				1.0 - exp(-delta / SPEECH_ENERGY_ATTACK))
+			_speech_energy_smooth = lerpf(
+				_speech_energy_smooth, _speech_energy, 1.0 - exp(-delta / SPEECH_ENERGY_ATTACK)
+			)
 		else:
-			_speech_energy_smooth = lerpf(_speech_energy_smooth, _speech_energy,
-				1.0 - exp(-delta / SPEECH_ENERGY_RELEASE))
+			_speech_energy_smooth = lerpf(
+				_speech_energy_smooth, _speech_energy, 1.0 - exp(-delta / SPEECH_ENERGY_RELEASE)
+			)
 
 		# Context-aware blink with speech energy
 		var blink := _blink_controller.update(delta, _speech_energy_smooth)
@@ -204,11 +206,13 @@ func _process(delta: float):
 			_speech_energy += visemes[key]
 		_speech_energy = clampf(_speech_energy, 0.0, 1.0)
 		if _speech_energy > _speech_energy_smooth:
-			_speech_energy_smooth = lerpf(_speech_energy_smooth, _speech_energy,
-				1.0 - exp(-delta / SPEECH_ENERGY_ATTACK))
+			_speech_energy_smooth = lerpf(
+				_speech_energy_smooth, _speech_energy, 1.0 - exp(-delta / SPEECH_ENERGY_ATTACK)
+			)
 		else:
-			_speech_energy_smooth = lerpf(_speech_energy_smooth, _speech_energy,
-				1.0 - exp(-delta / SPEECH_ENERGY_RELEASE))
+			_speech_energy_smooth = lerpf(
+				_speech_energy_smooth, _speech_energy, 1.0 - exp(-delta / SPEECH_ENERGY_RELEASE)
+			)
 
 		var blink := _blink_controller.update(delta, _speech_energy_smooth)
 		_merged_weights.merge(blink)
@@ -250,13 +254,17 @@ func _process(delta: float):
 	# Ramp aside expression target (smooth attack/release)
 	if _expression_target.length() > 0:
 		if _expression_current_weight < _expression_target_weight:
-			_expression_current_weight = lerpf(_expression_current_weight,
+			_expression_current_weight = lerpf(
+				_expression_current_weight,
 				_expression_target_weight,
-				1.0 - exp(-delta / maxf(_expression_attack, 0.01)))
+				1.0 - exp(-delta / maxf(_expression_attack, 0.01))
+			)
 		else:
-			_expression_current_weight = lerpf(_expression_current_weight,
+			_expression_current_weight = lerpf(
+				_expression_current_weight,
 				_expression_target_weight,
-				1.0 - exp(-delta / maxf(_expression_release, 0.01)))
+				1.0 - exp(-delta / maxf(_expression_release, 0.01))
+			)
 		if _expression_current_weight < 0.005:
 			_expression_current_weight = 0.0
 		if _expression_current_weight > 0.005:
@@ -352,8 +360,9 @@ func get_speech_energy() -> float:
 
 ## Set expression target from aside performance cue.
 ## Ramps smoothly to the target weight over attack_time seconds.
-func set_expression_target(emotion: String, weight: float = 0.5,
-		attack: float = 0.3, release: float = 1.0):
+func set_expression_target(
+	emotion: String, weight: float = 0.5, attack: float = 0.3, release: float = 1.0
+):
 	if emotion != _expression_target and _expression_current_weight > 0.01:
 		# Different emotion requested — start releasing old one by setting target to 0
 		# then switch once it's low enough
@@ -391,8 +400,18 @@ func get_expression_target_info() -> Dictionary:
 
 
 ## ARKit-style blend shape names for auto-detection
-const ARKIT_MARKERS := ["jawOpen", "mouthFunnel", "mouthPucker", "eyeBlink_L", "eyeBlink_R",
-	"mouthSmile_L", "mouthSmile_R", "mouthFrown_L", "browDown_L", "eyeWide_L"]
+const ARKIT_MARKERS := [
+	"jawOpen",
+	"mouthFunnel",
+	"mouthPucker",
+	"eyeBlink_L",
+	"eyeBlink_R",
+	"mouthSmile_L",
+	"mouthSmile_R",
+	"mouthFrown_L",
+	"browDown_L",
+	"eyeWide_L"
+]
 
 ## VRChat-style blend shape names for auto-detection
 const VRCHAT_MARKERS := ["vrc_v_aa", "vrc_v_ih", "vrc_v_ou", "vrc_v_ee", "vrc_v_oh", "vrc_blink"]
@@ -422,7 +441,11 @@ func get_model_diagnostics() -> Dictionary:
 	for bs_name in _blend_shape_names:
 		if bs_name in ARKIT_MARKERS:
 			arkit_count += 1
-		if bs_name.begins_with("lip_") or bs_name.begins_with("blink_") or bs_name.begins_with("face_"):
+		if (
+			bs_name.begins_with("lip_")
+			or bs_name.begins_with("blink_")
+			or bs_name.begins_with("face_")
+		):
 			vrm_count += 1
 		for marker in VRCHAT_MARKERS:
 			if marker in bs_name:
@@ -443,7 +466,9 @@ func get_model_diagnostics() -> Dictionary:
 	var viseme_total := mapping.size()
 	for driver_key in mapping:
 		var vrm_name: String = mapping[driver_key]
-		var found: bool = _blend_shape_cache.has(vrm_name) or _blend_shape_cache.has(vrm_name.to_lower())
+		var found: bool = (
+			_blend_shape_cache.has(vrm_name) or _blend_shape_cache.has(vrm_name.to_lower())
+		)
 		result["visemes"].append({"driver": driver_key, "vrm_name": vrm_name, "found": found})
 		referenced_names[vrm_name] = true
 		if found:
@@ -454,7 +479,9 @@ func get_model_diagnostics() -> Dictionary:
 	var has_blink_r := false
 	for driver_key in expr_mapping:
 		var vrm_name: String = expr_mapping[driver_key]
-		var found: bool = _blend_shape_cache.has(vrm_name) or _blend_shape_cache.has(vrm_name.to_lower())
+		var found: bool = (
+			_blend_shape_cache.has(vrm_name) or _blend_shape_cache.has(vrm_name.to_lower())
+		)
 		result["expressions"].append({"driver": driver_key, "vrm_name": vrm_name, "found": found})
 		referenced_names[vrm_name] = true
 		if found:

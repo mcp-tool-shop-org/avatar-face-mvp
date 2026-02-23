@@ -45,11 +45,19 @@ var _raw_weights: Dictionary = {}
 
 ## Parsed driver weights (reused to avoid per-frame alloc)
 var _viseme_weights: Dictionary = {
-	"aa": 0.0, "ih": 0.0, "ou": 0.0, "ee": 0.0, "oh": 0.0,
+	"aa": 0.0,
+	"ih": 0.0,
+	"ou": 0.0,
+	"ee": 0.0,
+	"oh": 0.0,
 }
 var _expression_weights: Dictionary = {
-	"blink_left": 0.0, "blink_right": 0.0,
-	"happy": 0.0, "sad": 0.0, "angry": 0.0, "surprised": 0.0,
+	"blink_left": 0.0,
+	"blink_right": 0.0,
+	"happy": 0.0,
+	"sad": 0.0,
+	"angry": 0.0,
+	"surprised": 0.0,
 }
 
 var _udp: PacketPeerUDP = null
@@ -129,9 +137,13 @@ func _parse_packet(data: PackedByteArray):
 
 	# Skip to rotation (quaternion at offset after eye positions)
 	# Right eye 3D (3 floats)
-	stream.get_float(); stream.get_float(); stream.get_float()
+	stream.get_float()
+	stream.get_float()
+	stream.get_float()
 	# Left eye 3D (3 floats)
-	stream.get_float(); stream.get_float(); stream.get_float()
+	stream.get_float()
+	stream.get_float()
+	stream.get_float()
 
 	# Head rotation as quaternion
 	if stream.get_position() + 16 <= data.size():
@@ -144,7 +156,9 @@ func _parse_packet(data: PackedByteArray):
 
 	# Translation (3 floats) — skip
 	if stream.get_position() + 12 <= data.size():
-		stream.get_float(); stream.get_float(); stream.get_float()
+		stream.get_float()
+		stream.get_float()
+		stream.get_float()
 
 	# Confidence
 	if stream.get_position() + 4 <= data.size():
@@ -177,30 +191,55 @@ func _parse_packet(data: PackedByteArray):
 
 ## OpenSeeFace feature output order (matches their Python tracker)
 func _get_feature_names() -> PackedStringArray:
-	return PackedStringArray([
-		"eyeBlink_L", "eyeBlink_R",
-		"eyeSquint_L", "eyeSquint_R",
-		"eyeWide_L", "eyeWide_R",
-		"browDown_L", "browDown_R",
-		"browInnerUp", "browOuterUp_L", "browOuterUp_R",
-		"noseSneer_L", "noseSneer_R",
-		"cheekPuff", "cheekSquint_L", "cheekSquint_R",
-		"jawOpen", "jawForward", "jawLeft", "jawRight",
-		"mouthFunnel", "mouthPucker",
-		"mouthLeft", "mouthRight",
-		"mouthSmile_L", "mouthSmile_R",
-		"mouthFrown_L", "mouthFrown_R",
-		"mouthDimple_L", "mouthDimple_R",
-		"mouthStretch_L", "mouthStretch_R",
-		"mouthRollLower", "mouthRollUpper",
-		"mouthShrugLower", "mouthShrugUpper",
-		"mouthPress_L", "mouthPress_R",
-		"mouthLowerDown_L", "mouthLowerDown_R",
-		"mouthUpperUp_L", "mouthUpperUp_R",
-		"mouthClose",
-		"mouthWide",
-		"tongueOut",
-	])
+	return PackedStringArray(
+		[
+			"eyeBlink_L",
+			"eyeBlink_R",
+			"eyeSquint_L",
+			"eyeSquint_R",
+			"eyeWide_L",
+			"eyeWide_R",
+			"browDown_L",
+			"browDown_R",
+			"browInnerUp",
+			"browOuterUp_L",
+			"browOuterUp_R",
+			"noseSneer_L",
+			"noseSneer_R",
+			"cheekPuff",
+			"cheekSquint_L",
+			"cheekSquint_R",
+			"jawOpen",
+			"jawForward",
+			"jawLeft",
+			"jawRight",
+			"mouthFunnel",
+			"mouthPucker",
+			"mouthLeft",
+			"mouthRight",
+			"mouthSmile_L",
+			"mouthSmile_R",
+			"mouthFrown_L",
+			"mouthFrown_R",
+			"mouthDimple_L",
+			"mouthDimple_R",
+			"mouthStretch_L",
+			"mouthStretch_R",
+			"mouthRollLower",
+			"mouthRollUpper",
+			"mouthShrugLower",
+			"mouthShrugUpper",
+			"mouthPress_L",
+			"mouthPress_R",
+			"mouthLowerDown_L",
+			"mouthLowerDown_R",
+			"mouthUpperUp_L",
+			"mouthUpperUp_R",
+			"mouthClose",
+			"mouthWide",
+			"tongueOut",
+		]
+	)
 
 
 ## Get viseme weights mapped from ARKit blendshapes.
@@ -215,8 +254,7 @@ func get_viseme_weights() -> Dictionary:
 			var driver_name: String = ARKIT_TO_VISEME[arkit_name]
 			# Max-merge (multiple ARKit shapes can map to same viseme)
 			_viseme_weights[driver_name] = maxf(
-				_viseme_weights[driver_name],
-				_raw_weights[arkit_name]
+				_viseme_weights[driver_name], _raw_weights[arkit_name]
 			)
 
 	return _viseme_weights
@@ -231,8 +269,7 @@ func get_expression_weights() -> Dictionary:
 		if arkit_name in _raw_weights:
 			var driver_name: String = ARKIT_TO_EXPRESSION[arkit_name]
 			_expression_weights[driver_name] = maxf(
-				_expression_weights[driver_name],
-				_raw_weights[arkit_name]
+				_expression_weights[driver_name], _raw_weights[arkit_name]
 			)
 
 	return _expression_weights

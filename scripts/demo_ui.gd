@@ -104,7 +104,11 @@ func _ready():
 	# TTS panel wiring
 	tts_button.pressed.connect(_on_tts_toggle)
 	tts_panel.visible = false
-	tts_close_btn.pressed.connect(func(): tts_panel.visible = false; tts_button.text = "TTS Speak")
+	tts_close_btn.pressed.connect(
+		func():
+			tts_panel.visible = false
+			tts_button.text = "TTS Speak"
+	)
 	tts_connect_btn.pressed.connect(_on_tts_connect)
 	tts_speak_btn.pressed.connect(_on_tts_speak)
 	tts_stop_btn.pressed.connect(_on_tts_stop)
@@ -421,9 +425,10 @@ func _refresh_diagnostics():
 	if not diag.get("has_blinks", false):
 		text += "!! BLINKS MISSING (needed for GREEN) !!\n"
 	var has_eye_bones: bool = diag.get("has_eye_bones", false)
-	text += "Eye bones: %s | Gaze: %s\n" % [
-		"YES" if has_eye_bones else "NO (blendshape fallback)",
-		"saccades active"]
+	text += (
+		"Eye bones: %s | Gaze: %s\n"
+		% ["YES" if has_eye_bones else "NO (blendshape fallback)", "saccades active"]
+	)
 
 	# Viseme coverage
 	text += "\n--- VISEMES ---\n"
@@ -472,6 +477,7 @@ func _refresh_diagnostics():
 
 
 ## --- TTS Panel ---
+
 
 func setup_tts(tts: TtsController):
 	_tts_controller = tts

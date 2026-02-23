@@ -6,17 +6,48 @@
 class_name PoseCorrector
 extends Node
 
-
 ## Bone alias lookup — same convention as IdleController.
 const BONE_ALIASES := {
-	"LeftUpperArm": ["LeftUpperArm", "leftupperarm", "left_upper_arm",
-		"J_Bip_L_UpperArm", "upper_arm.L", "upperarm_L", "mixamorig:LeftArm"],
-	"RightUpperArm": ["RightUpperArm", "rightupperarm", "right_upper_arm",
-		"J_Bip_R_UpperArm", "upper_arm.R", "upperarm_R", "mixamorig:RightArm"],
-	"LeftLowerArm": ["LeftLowerArm", "leftlowerarm", "left_lower_arm",
-		"J_Bip_L_LowerArm", "lower_arm.L", "lowerarm_L", "mixamorig:LeftForeArm"],
-	"RightLowerArm": ["RightLowerArm", "rightlowerarm", "right_lower_arm",
-		"J_Bip_R_LowerArm", "lower_arm.R", "lowerarm_R", "mixamorig:RightForeArm"],
+	"LeftUpperArm":
+	[
+		"LeftUpperArm",
+		"leftupperarm",
+		"left_upper_arm",
+		"J_Bip_L_UpperArm",
+		"upper_arm.L",
+		"upperarm_L",
+		"mixamorig:LeftArm"
+	],
+	"RightUpperArm":
+	[
+		"RightUpperArm",
+		"rightupperarm",
+		"right_upper_arm",
+		"J_Bip_R_UpperArm",
+		"upper_arm.R",
+		"upperarm_R",
+		"mixamorig:RightArm"
+	],
+	"LeftLowerArm":
+	[
+		"LeftLowerArm",
+		"leftlowerarm",
+		"left_lower_arm",
+		"J_Bip_L_LowerArm",
+		"lower_arm.L",
+		"lowerarm_L",
+		"mixamorig:LeftForeArm"
+	],
+	"RightLowerArm":
+	[
+		"RightLowerArm",
+		"rightlowerarm",
+		"right_lower_arm",
+		"J_Bip_R_LowerArm",
+		"lower_arm.R",
+		"lowerarm_R",
+		"mixamorig:RightForeArm"
+	],
 }
 
 ## Whether correction is active
@@ -132,7 +163,9 @@ func _arm_needs_fix(skel: Skeleton3D, upper_idx: int, lower_idx: int) -> bool:
 ## read the ACTUAL resulting global position of the lower arm bone, and pick
 ## whichever gets the arm direction closest to the target. No math assumptions
 ## about bone-local axis conventions — just measure what Godot actually does.
-func _compute_correction(skel: Skeleton3D, upper_idx: int, lower_idx: int, is_left: bool) -> Quaternion:
+func _compute_correction(
+	skel: Skeleton3D, upper_idx: int, lower_idx: int, is_left: bool
+) -> Quaternion:
 	if lower_idx < 0:
 		return Quaternion.IDENTITY
 
@@ -151,9 +184,12 @@ func _compute_correction(skel: Skeleton3D, upper_idx: int, lower_idx: int, is_le
 	var test_angles := [30.0, 50.0, 70.0, 90.0, 110.0]
 	# Axes to try
 	var test_axes := [
-		Vector3(1, 0, 0), Vector3(-1, 0, 0),
-		Vector3(0, 1, 0), Vector3(0, -1, 0),
-		Vector3(0, 0, 1), Vector3(0, 0, -1),
+		Vector3(1, 0, 0),
+		Vector3(-1, 0, 0),
+		Vector3(0, 1, 0),
+		Vector3(0, -1, 0),
+		Vector3(0, 0, 1),
+		Vector3(0, 0, -1),
 	]
 
 	var best_quat := Quaternion.IDENTITY
@@ -185,8 +221,12 @@ func _compute_correction(skel: Skeleton3D, upper_idx: int, lower_idx: int, is_le
 	var verify_dir := (verify_lower - verify_upper).normalized()
 	skel.set_bone_pose_rotation(upper_idx, Quaternion.IDENTITY)
 
-	print("PoseCorrector: %s arm: cur=%s target=%s best=%s (dot=%.3f)" % [
-		"L" if is_left else "R", cur_dir, target_dir, verify_dir, best_dot])
+	print(
+		(
+			"PoseCorrector: %s arm: cur=%s target=%s best=%s (dot=%.3f)"
+			% ["L" if is_left else "R", cur_dir, target_dir, verify_dir, best_dot]
+		)
+	)
 
 	return best_quat
 

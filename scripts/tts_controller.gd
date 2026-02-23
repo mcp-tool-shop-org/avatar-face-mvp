@@ -115,8 +115,13 @@ func get_available_voices() -> Array:
 
 ## Send a speak request to the bridge.
 ## emotion/intensity are forwarded so the bridge can push an aside performance cue.
-func speak(text: String, voice: String = "", format: String = "ogg",
-		emotion: String = "", intensity: float = 0.5):
+func speak(
+	text: String,
+	voice: String = "",
+	format: String = "ogg",
+	emotion: String = "",
+	intensity: float = 0.5
+):
 	if not _connected:
 		error_received.emit("Not connected to TTS bridge")
 		return
@@ -177,12 +182,17 @@ func _handle_message(text: String):
 			var spoken_text: String = msg.get("text", "")
 			var duration_ms: int = msg.get("durationMs", 0)
 			if path != "":
-				_audio_queue.append({
-					"path": path,
-					"voice": voice,
-					"text": spoken_text,
-					"durationMs": duration_ms,
-				})
+				(
+					_audio_queue
+					. append(
+						{
+							"path": path,
+							"voice": voice,
+							"text": spoken_text,
+							"durationMs": duration_ms,
+						}
+					)
+				)
 				if not _is_playing:
 					_play_next_in_queue()
 
@@ -283,13 +293,15 @@ func _play_next_in_queue():
 
 ## --- Aside helpers ---
 
+
 func is_aside_available() -> bool:
 	return _aside_available
 
 
 ## Push a performance cue to aside via bridge.
-func push_aside(text: String, emotion: String = "neutral", intensity: float = 0.5,
-		tags: Array = []):
+func push_aside(
+	text: String, emotion: String = "neutral", intensity: float = 0.5, tags: Array = []
+):
 	if not _connected:
 		return
 	var msg := {
@@ -361,11 +373,17 @@ func _load_wav_from_buffer(data: PackedByteArray) -> AudioStream:
 		var chunk_id := ""
 		for i in 4:
 			chunk_id += String.chr(data[pos + i])
-		var chunk_size: int = data[pos + 4] | (data[pos + 5] << 8) | (data[pos + 6] << 16) | (data[pos + 7] << 24)
+		var chunk_size: int = (
+			data[pos + 4] | (data[pos + 5] << 8) | (data[pos + 6] << 16) | (data[pos + 7] << 24)
+		)
 		if chunk_id == "data":
 			var audio_data := data.slice(pos + 8, pos + 8 + chunk_size)
 			var wav := AudioStreamWAV.new()
-			wav.format = AudioStreamWAV.FORMAT_16_BITS if bits_per_sample == 16 else AudioStreamWAV.FORMAT_8_BITS
+			wav.format = (
+				AudioStreamWAV.FORMAT_16_BITS
+				if bits_per_sample == 16
+				else AudioStreamWAV.FORMAT_8_BITS
+			)
 			wav.mix_rate = sample_rate
 			wav.stereo = num_channels == 2
 			wav.data = audio_data

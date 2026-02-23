@@ -31,7 +31,9 @@ func _scan_mapping_profiles():
 	var file_name: String = dir.get_next()
 	while file_name != "":
 		if file_name.begins_with("mapping") and file_name.ends_with(".json"):
-			var profile_name: String = file_name.replace("mapping_", "").replace("mapping", "vrm").replace(".json", "")
+			var profile_name: String = (
+				file_name.replace("mapping_", "").replace("mapping", "vrm").replace(".json", "")
+			)
 			if profile_name == "vrm":
 				profile_name = "VRM Standard"
 			else:
@@ -39,7 +41,9 @@ func _scan_mapping_profiles():
 			mapping_profiles[profile_name] = MAPPING_DIR + file_name
 		file_name = dir.get_next()
 	if active_profile == "" and mapping_profiles.size() > 0:
-		active_profile = "VRM Standard" if mapping_profiles.has("VRM Standard") else mapping_profiles.keys()[0]
+		active_profile = (
+			"VRM Standard" if mapping_profiles.has("VRM Standard") else mapping_profiles.keys()[0]
+		)
 
 
 func get_profile_names() -> PackedStringArray:

@@ -54,11 +54,16 @@ func queue_download(avatar_name: String, model_url: String, collection_id: Strin
 		if item["name"] == avatar_name:
 			return
 
-	_queue.append({
-		"name": avatar_name,
-		"url": model_url,
-		"collection_id": collection_id,
-	})
+	(
+		_queue
+		. append(
+			{
+				"name": avatar_name,
+				"url": model_url,
+				"collection_id": collection_id,
+			}
+		)
+	)
 
 	if not _is_downloading:
 		_start_next_download()
@@ -97,7 +102,15 @@ func _start_next_download():
 		_start_next_download()
 
 
-func _on_download_completed(result: int, code: int, headers: PackedStringArray, body: PackedByteArray, http: HTTPRequest, avatar_name: String, local_path: String):
+func _on_download_completed(
+	result: int,
+	code: int,
+	headers: PackedStringArray,
+	body: PackedByteArray,
+	http: HTTPRequest,
+	avatar_name: String,
+	local_path: String
+):
 	http.queue_free()
 	_current_download.clear()
 
@@ -132,7 +145,15 @@ func download_thumbnail(avatar_id: String, thumbnail_url: String, callback: Call
 		http.queue_free()
 
 
-func _on_thumb_received(result: int, code: int, headers: PackedStringArray, body: PackedByteArray, http: HTTPRequest, thumb_path: String, callback: Callable):
+func _on_thumb_received(
+	result: int,
+	code: int,
+	headers: PackedStringArray,
+	body: PackedByteArray,
+	http: HTTPRequest,
+	thumb_path: String,
+	callback: Callable
+):
 	http.queue_free()
 	if result != HTTPRequest.RESULT_SUCCESS or code != 200 or body.size() == 0:
 		return

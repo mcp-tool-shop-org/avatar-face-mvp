@@ -103,10 +103,7 @@ func update(delta: float, idle_controller: IdleController) -> bool:
 			if _wander_timer >= _wander_interval:
 				_wander_timer = 0.0
 				_wander_interval = _rng.randf_range(1.5, 4.0)
-				_wander_target = Vector2(
-					_rng.randf_range(-8.0, 8.0),
-					_rng.randf_range(-4.0, 4.0)
-				)
+				_wander_target = Vector2(_rng.randf_range(-8.0, 8.0), _rng.randf_range(-4.0, 4.0))
 			gaze_yaw = _wander_target.x + _saccade_offset.x
 			gaze_pitch = _wander_target.y + _saccade_offset.y
 

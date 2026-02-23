@@ -1,0 +1,28 @@
+# GDScript lint configuration
+# Tuned for avatar-face-mvp — catches real bugs, respects project conventions
+
+# 120 chars is reasonable for modern editors
+max-line-length: 120
+
+# VRM addon uses mixed-case preload names (VRMC_vrm_class, VRMC_springBone_class, etc.)
+# Pattern: PascalCase OR snake_case OR ALLCAPS_mixedSnake (VRM addon convention)
+load-constant-name: '(([A-Z][a-z0-9]*)+|_?[a-z][a-z0-9]*(_[a-z0-9]+)*|[A-Z]+(_[a-zA-Z][a-zA-Z0-9]*)+)'
+
+# Signal callbacks have unused params (_headers, _body, etc.)
+function-variable-name: '_?[a-z][a-z0-9]*(_[a-z0-9]+)*'
+
+# Allow leading underscore on function args (signal callback convention)
+function-argument-name: _?[a-z][a-z0-9]*(_[a-z0-9]+)*
+
+# Prototype files can be longer
+max-file-lines: 2000
+
+# Allow more returns in complex state machines
+max-returns: 10
+
+# Stylistic / project-convention rules — don't enforce in prototype
+disable:
+  - no-elif-return
+  - no-else-return
+  - class-definitions-order
+  - unused-argument

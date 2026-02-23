@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    paths:
+      - "scripts/**"
+      - "config/**"
+      - "tools/**"
+      - "project.godot"
+      - ".github/workflows/**"
+  pull_request:
+    paths:
+      - "scripts/**"
+      - "config/**"
+      - "tools/**"
+      - "project.godot"
+      - ".github/workflows/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  config-validation:
+    name: Config Schema Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install ajv-cli
+        run: npm install -g ajv-cli ajv-formats
+
+      - name: Validate tuning.json
+        run: ajv validate -s config/schemas/tuning.schema.json -d config/tuning.json --spec=draft2020 -c ajv-formats
+
+      - name: Validate mapping.json
+        run: ajv validate -s config/schemas/mapping.schema.json -d config/mapping.json --spec=draft2020 -c ajv-formats
+
+      - name: Validate mapping_arkit.json
+        run: ajv validate -s config/schemas/mapping.schema.json -d config/mapping_arkit.json --spec=draft2020 -c ajv-formats
+
+      - name: Validate mapping_vrchat.json
+        run: ajv validate -s config/schemas/mapping.schema.json -d config/mapping_vrchat.json --spec=draft2020 -c ajv-formats
+
+  gdscript-lint:
+    name: GDScript Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install gdtoolkit
+        run: pip install "gdtoolkit==4.*"
+
+      - name: Lint GDScript
+        run: gdlint scripts/
+
+      - name: Check GDScript formatting
+        run: gdformat --check scripts/
+
+  bridge-check:
+    name: Bridge Lint & Syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: tools/tts-bridge
+        run: npm ci
+
+      - name: Syntax check
+        working-directory: tools/tts-bridge
+        run: node --check bridge.mjs
+
+      - name: Lint
+        working-directory: tools/tts-bridge
+        run: npx eslint bridge.mjs

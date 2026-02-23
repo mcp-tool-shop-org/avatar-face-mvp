@@ -381,7 +381,7 @@ async function handleMessage(ws, msg) {
           };
           if (msg.reason) pushArgs.reason = msg.reason;
           if (msg.tags) pushArgs.tags = msg.tags;
-          if (msg.emotion || msg.intensity != null) {
+          if (msg.emotion || msg.intensity !== null) {
             pushArgs.meta = {
               emotion: msg.emotion || "neutral",
               intensity: msg.intensity ?? 0.5,
