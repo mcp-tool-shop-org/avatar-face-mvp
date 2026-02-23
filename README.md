@@ -1,4 +1,6 @@
-# Avatar Face MVP
+<p align="center">
+  <img src="assets/logo.png" alt="Avatar Face MVP" width="280" />
+</p>
 
 > **Prototype** -- proof-of-concept, not production software.
 > See [Roadmap to v0.1.0](#roadmap-to-v010) for what needs to happen before a real release.
