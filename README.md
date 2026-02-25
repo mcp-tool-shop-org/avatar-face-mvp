@@ -2,6 +2,8 @@
   <img src="assets/logo.png" alt="Avatar Face MVP" width="280" />
 </p>
 
+[![Landing Page](https://img.shields.io/badge/Landing_Page-live-blue)](https://mcp-tool-shop-org.github.io/avatar-face-mvp/)
+
 > **Prototype** -- proof-of-concept, not production software.
 > See [Roadmap to v0.1.0](#roadmap-to-v010) for what needs to happen before a real release.
 
