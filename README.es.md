@@ -1,7 +1,5 @@
 <p align="center">
-  
-            <img src="https://raw.githubusercontent.com/mcp-tool-shop-org/brand/main/logos/avatar-face-mvp/readme.png"
-           alt="Avatar Face MVP" width="280" />
+  <img src="assets/logo.png" alt="Avatar Face MVP" width="280" />
 </p>
 
 [![Página de inicio](https://img.shields.io/badge/Landing_Page-en_funcionamiento-blue)](https://mcp-tool-shop-org.github.io/avatar-face-mvp/)
