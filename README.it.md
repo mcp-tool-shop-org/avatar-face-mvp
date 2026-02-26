@@ -1,5 +1,11 @@
 <p align="center">
-  <img src="assets/logo.png" alt="Avatar Face MVP" width="280" />
+<strong>Languages:</strong> <a href="README.md">English</a> | <a href="README.ja.md">日本語</a> | <a href="README.zh.md">中文</a> | <a href="README.es.md">Español</a> | <a href="README.fr.md">Français</a> | <a href="README.hi.md">हिंदी</a> | <a href="README.it.md">Italiano</a> | <a href="README.pt-BR.md">Português</a>
+</p>
+
+<p align="center">
+  
+            <img src="https://raw.githubusercontent.com/mcp-tool-shop-org/brand/main/logos/avatar-face-mvp/readme.png"
+           alt="Avatar Face MVP" width="280" />
 </p>
 
 [![Pagina di presentazione](https://img.shields.io/badge/Landing_Page-online-blue)](https://mcp-tool-shop-org.github.io/avatar-face-mvp/)
@@ -15,7 +21,7 @@ Sincronizzazione labiale in tempo reale per avatar VRM, espressioni facciali, an
 2. **Webcam in -> tracciamento completo del viso** tramite OpenSeeFace (52 blendshapes di ARKit).
 3. **Scrivi del testo -> l'avatar parla** con sintesi vocale sincronizzata alle labbra tramite KokoroSharp.
 4. **Scarica qualsiasi modello VRM con licenza CC0 -> funziona immediatamente** grazie ai profili di mappatura rilevati automaticamente.
-5. **Tutto è basato sui dati** – si modificano i file JSON di mappatura, non il codice.
+5. **Tutto è basato sui dati**: si modificano i file JSON di mappatura, non il codice.
 
 ## Stato
 
@@ -28,7 +34,7 @@ Sincronizzazione labiale in tempo reale per avatar VRM, espressioni facciali, an
 | Sincronizzazione labiale basata sull'analisi FFT (microfono/file WAV). | Lavorando. |
 | Tracciamento della webcam con OpenSeeFace. | Lavorando. |
 | Lampeggiamento procedurale (sensibile al contesto). | Lavorando. |
-| Animazione inattiva (respirazione, oscillazione, movimento del capo). | Lavorando. |
+| Animazioni inattive (respirazione, oscillazione, movimento del capo). | Lavorando. |
 | Movimenti oculari caratterizzati da micro-scatti. | Lavorando. |
 | Composizione di espressioni (ammiccamenti > sguardo > movimenti delle labbra > emozioni). | Lavorando. |
 | Ponte TTS + sintesi vocale. | Lavorando. |
@@ -38,17 +44,17 @@ Sincronizzazione labiale in tempo reale per avatar VRM, espressioni facciali, an
 | Pannello di diagnostica del modello. | Lavorando. |
 | Profili di mappatura (VRM / ARKit / VRChat). | Lavorando. |
 | Configurazione ricaricabile a caldo (file tuning.json e mapping.json). | Lavorando. |
-| Correzione della posizione delle braccia, da posizione "T" a posizione "A". | **Non funzionante** – In fase di sviluppo, non produce risultati corretti. |
+| Correzione della posizione delle braccia, da posizione "T" a posizione "A". | **Non funzionante** -- In fase di sviluppo, non produce risultati corretti. |
 
 ## Pila
 
 - **Ambiente di esecuzione:** Godot 4.3+ (renderizzatore compatibile con OpenGL)
 - **Formato avatar:** VRM 0.0 e 1.0 (tramite l'addon [godot-vrm](https://github.com/V-Sekai/godot-vrm))
-- **Driver FFT:** `AudioEffectSpectrumAnalyzer` integrato -> 5 bande viseme
+- **Driver FFT:** Analizzatore di spettro audio integrato (`AudioEffectSpectrumAnalyzer`) -> 5 bande viseme
 - **Driver webcam:** [OpenSeeFace](https://github.com/emilianavt/OpenSeeFace) UDP (52 blendshapes di ARKit + posa della testa)
-- **Ponte TTS:** Relay WebSocket Node.js che collega Godot a [voice-soundboard-mcp](https://github.com/mcp-tool-shop-org/voice-soundboard-mcp) + opzionale [mcp-aside](https://github.com/mcp-tool-shop-org/mcp-aside) per i segnali delle espressioni
+- **Ponte TTS:** Relay WebSocket Node.js che collega Godot a [voice-soundboard-mcp](https://github.com/mcp-tool-shop-org/voice-soundboard-mcp) + opzionale [mcp-aside](https://github.com/mcp-tool-shop-org/mcp-aside) per suggerimenti di espressione
 - **Motore TTS:** KokoroSharp (locale, funziona su GPU o CPU)
-- **Configurazione:** File JSON basato sui dati, con ricaricamento automatico ogni 2 secondi.
+- **Configurazione:** File JSON basato sui dati, con ricaricamento a caldo ogni 2 secondi.
 
 ## Configurazione
 
@@ -56,7 +62,7 @@ Sincronizzazione labiale in tempo reale per avatar VRM, espressioni facciali, an
 
 - Godot 4.3 o superiore (compatibilità con OpenGL)
 - Node.js 18 o superiore (per il collegamento con il sistema di sintesi vocale)
-- Un file di avatar VRM (oppure utilizzare l'avatar di prova Seed-san incluso).
+- Un file di avatar VRM (oppure utilizzare l'avatar di prova "Seed-san" incluso).
 
 ### Avvio rapido
 
@@ -84,7 +90,7 @@ cd ../..
 
 ### Test rapido senza microfono
 
-Un file tentsimo, situato in `assets/audio/test_vowels.wav`, riproduce tutte e cinque le bande dei visemi (ou, oh, aa, ih, ee) due volte, per una durata di circa 10 secondi. Cliccare su "Riproduci i visemi di prova" per verificare il corretto funzionamento del driver FFT.
+Un file di test, situato in `assets/audio/test_vowels.wav`, riproduce tutte e cinque le bande dei visemi (ou, oh, aa, ih, ee) due volte, per una durata di circa 10 secondi. Cliccare su "Riproduci i visemi di test" per verificare il corretto funzionamento del driver FFT.
 
 Per rigenerare: `python tools/generate_test_audio.py`
 
@@ -97,11 +103,11 @@ Per rigenerare: `python tools/generate_test_audio.py`
 
 ### Utilizzo della sintesi vocale
 
-Il sistema TTS utilizza un componente di collegamento (bridge) scritto in Node.js per connettere Godot a un server locale di sintesi vocale KokoroSharp.
+Il sistema TTS utilizza un'interfaccia Node.js per collegare Godot a un server locale di sintesi vocale KokoroSharp.
 
 1. Assicurarsi che `voice-soundboard-mcp` sia in esecuzione (vedere il repository per le istruzioni di configurazione).
 2. Il BridgeManager avvia automaticamente `tools/tts-bridge/bridge.mjs` e stabilisce la connessione.
-3. Il pannello TTS si apre automaticamente una volta stabilita la connessione: inserire il testo e fare clic su **Parla**.
+3. Il pannello TTS si apre automaticamente una volta stabilita la connessione: digitare il testo e fare clic su **Parla**.
 4. Le voci disponibili vengono caricate dal server (impostazione predefinita: `am_fenrir`).
 5. Facoltativo: selezionare un'emozione per applicare indizi espressivi durante la riproduzione.
 
@@ -151,9 +157,9 @@ Mostra informazioni in tempo reale sulla compatibilità dell'avatar caricato.
 - **Stato:** VERDE (tutto mappato), GIALLO (mappatura parziale), ROSSO (mancano forme critiche)
 - **Stile rilevato:** VRM Standard, ARKit o VRChat
 - **Suggerimento del profilo:** suggerisce automaticamente il profilo di mappatura corretto.
-- **Copertura dei visemi:** indica quali visemi del driver sono associati a quali deformazioni (presenti/assenti).
+- **Copertura dei visemi:** indica quali visemi del driver corrispondono a quali deformazioni (trovati/mancanti).
 - **Copertura delle espressioni:** stessa cosa per gli ammiccamenti e le emozioni.
-- **Stato dell'ammiccamento e dell'osso dell'occhio:** indica se l'ammiccamento procedurale e il movimento basato sull'osso funzioneranno.
+- **Stato dell'ammiccamento e dell'osso dell'occhio:** indica se l'ammiccamento procedurale e la direzione dello sguardo basata sull'osso funzioneranno.
 - **Forme non mappate:** deformazioni presenti nel modello che non sono referenziate da nessuna mappatura.
 
 ## Configurazione
@@ -165,18 +171,15 @@ Ricarica automatica ogni 2 secondi. Non è necessario riavviare il sistema.
 | Key | Cosa fa. | Predefinito. |
 |-----| Certo, ecco la traduzione:
 
-"Please provide the English text you would like me to translate into Italian." | Translate the following English text into Italian:
+"Please provide the English text you would like me to translate into Italian." | Certo, ecco la traduzione:
 
-"The company is committed to providing high-quality products and services. We strive to meet the needs of our customers and to exceed their expectations. We are constantly innovating and improving our processes to offer the best possible solutions."
----------
-
-"L'azienda si impegna a fornire prodotti e servizi di alta qualità. Ci sforziamo di soddisfare le esigenze dei nostri clienti e di superare le loro aspettative. Innoviamo e miglioriamo costantemente i nostri processi per offrire le soluzioni migliori possibili." |
-| `smoothing.attack_time` | Quanto velocemente i Bollinger Bands si alzano (in secondi). | 0.06 |
+"Please provide the English text you would like me to translate into Italian." |
+| `smoothing.attack_time` | Velocità di salita dei pesi (in secondi). | 0.06 |
 | `smoothing.release_time` | Quanto velocemente cadono i pesi (in secondi). | 0.12 |
 | `viseme_bands.*` | Intervalli di frequenza [minimo, massimo] Hz per ogni visema. | vedere il file. |
 | `noise_gate` | Valore minimo dell'ampiezza della trasformata di Fourier (FFT) necessario per classificare un segnale come voce. | 0.01 |
 | `sensitivity` | Moltiplicatore di magnitudine per la trasformata di Fourier veloce (FFT). | 8.0 |
-| `blink.*` | Tempistiche procedurali per l'occlusione (intervallo, durata, probabilità di ammiccamento doppio). | vedere il file. |
+| `blink.*` | Sincronizzazione temporale degli ammiccamenti (intervallo, durata, probabilità di ammiccamento doppio). | vedere il file. |
 | `openseeface.host` | Host UDP di OpenSeeFace. | 127.0.0.1 |
 | `openseeface.port` | Porta UDP di OpenSeeFace. | 11573 |
 
@@ -185,15 +188,31 @@ Ricarica automatica ogni 2 secondi. Non è necessario riavviare il sistema.
 Il progetto include tre profili predefiniti:
 
 | File | Nome del profilo. | Per i modelli con... |
-| Certainly. Please provide the English text you would like me to translate. | Assolutamente. Ecco la traduzione:
+| Translate the following English text into Italian:
 
-"Please provide the English text you would like me to translate into Italian." | Ecco il testo da tradurre:
+"The company is committed to providing high-quality products and services. We strive to meet the needs of our customers and to exceed their expectations. We are constantly innovating and improving our processes to offer the best possible solutions."
+"L'azienda si impegna a fornire prodotti e servizi di alta qualità. Ci sforziamo di soddisfare le esigenze dei nostri clienti e di superare le loro aspettative. Innoviamo e miglioriamo costantemente i nostri processi per offrire le soluzioni migliori possibili." | Certo, ecco la traduzione:
 
-"The company is committed to providing high-quality products and services. We strive to meet the needs of our customers and to exceed their expectations. We are constantly innovating and improving our processes to offer the best possible solutions. We value our employees and are committed to creating a positive and supportive work environment. We are also committed to sustainability and to protecting the environment."
+"Please provide the English text you would like me to translate into Italian." | "The company is committed to providing high-quality products and services."
+
+"We are looking for a motivated and experienced candidate."
+
+"The meeting will be held on Tuesday at 10:00 AM."
+
+"Please contact us for further information."
+
+"We offer a wide range of products to meet your needs."
 -----------------
+"L'azienda si impegna a fornire prodotti e servizi di alta qualità."
 
-La società si impegna a fornire prodotti e servizi di alta qualità. Ci sforziamo di soddisfare le esigenze dei nostri clienti e di superare le loro aspettative. Innoviamo e miglioriamo costantemente i nostri processi per offrire le soluzioni migliori possibili. Valorizziamo i nostri dipendenti e ci impegniamo a creare un ambiente di lavoro positivo e stimolante. Siamo inoltre impegnati nella sostenibilità e nella protezione dell'ambiente. |
-| `mapping.json` | Standard VRM. | `lip_a`, `blink_L`, `face_happy` |
+"Siamo alla ricerca di un candidato motivato e con esperienza."
+
+"La riunione si terrà martedì alle 10:00."
+
+"Si prega di contattarci per ulteriori informazioni."
+
+"Offriamo una vasta gamma di prodotti per soddisfare le vostre esigenze." |
+| `mapping.json` | Standard VRM. | `labbra_aperte`, `ammiccamento_sinistro`, `faccia_felice` |
 | `mapping_arkit.json` | ARKit | `mascella_aperta`, `sbattimento_palpebra_sinistra`, `sorriso_bocca_sinistra` |
 | `mapping_vrchat.json` | VRChat | `vrc_v_aa`, `vrc_blink` |
 
@@ -234,10 +253,10 @@ Godot TtsController <--WebSocket--> bridge.mjs <--MCP--> voice-soundboard-mcp
 
 ### Decisioni chiave relative al progetto
 
-- **Tutti i dizionari utilizzati per le operazioni critiche sono pre-allocati**, il che riduce al minimo il carico sul garbage collector (GC) ad ogni fotogramma.
+- **Tutti i dizionari utilizzati per le operazioni critiche sono pre-allocati**, il che riduce al minimo il carico sulla garbage collection (GC) ad ogni fotogramma.
 - **La ricerca tra il nome della forma e il suo indice è memorizzata nella cache** durante il caricamento dell'avatar.
 - **Gli aggiornamenti dell'interfaccia di debug vengono limitati** a un fotogramma ogni tre.
-- **I controlli per il ricaricamento automatico della configurazione** vengono eseguiti ogni 2 secondi, e non ad ogni fotogramma.
+- **I controlli per il ricaricamento automatico della configurazione** vengono eseguiti ogni 2 secondi, non ad ogni fotogramma.
 - **Il "BridgeManager" utilizza un approccio "probe-first"**: verifica se il bridge è già in esecuzione prima di avviare un nuovo processo.
 - **Il compositore di espressioni risolve i conflitti**: i movimenti delle palpebre sopprimono le forme degli occhi, i fonemi sopprimono le espressioni della bocca, e la deformazione della mascella viene limitata.
 
@@ -286,9 +305,9 @@ avatar-face-mvp/
 
 ## Problemi noti
 
-- **Posizione delle braccia in "T"**: I modelli VRM vengono caricati nella posizione "T" dopo il processo di retargeting. Lo script `pose_corrector.gd` tenta una correzione in tempo reale tramite la funzione `set_bone_pose_rotation()`, ma i calcoli relativi agli assi locali delle ossa non producono risultati corretti. Questo è il problema visivo più significativo. La soluzione corretta probabilmente richiede o la modifica della posa di riferimento utilizzata nel processo di importazione dei modelli VRM, oppure la risoluzione empirica degli assi di rotazione locali per ogni scheletro.
-- **Modelli per VRChat**: I nomi delle "blend shape" utilizzano il prefisso `blendShape1.vrc_v_*`. Il profilo di mappatura per VRChat gestisce questo aspetto, ma la rilevazione automatica potrebbe suggerire il profilo sbagliato per alcuni modelli.
-- **Latenza di OpenSeeFace**: La funzione di smoothing della posizione della testa aggiunge circa 100 millisecondi di latenza. Regolare i parametri `head_pose_attack` e `head_pose_release` nello script `avatar_controller.gd` se necessario.
+- **Posizione delle braccia in "T"**: I modelli VRM vengono caricati nella posizione "T" dopo il processo di retargeting. Lo script `pose_corrector.gd` tenta una correzione in tempo reale tramite la funzione `set_bone_pose_rotation()`, ma i calcoli relativi agli assi locali delle ossa non producono risultati corretti. Questo è il problema visivo più significativo. La soluzione corretta probabilmente richiedeohama modificare la posa di riferimento utilizzata nel processo di importazione dei modelli VRM, oppure risolvere empiricamente gli assi di rotazione locali per ogni scheletro.
+- **Modelli per VRChat**: I nomi delle "blend shape" utilizzano il prefisso `blendShape1.vrc_v_*`. Il profilo di mappatura per VRChat gestisce questa convenzione, ma la rilevazione automatica potrebbe suggerire il profilo sbagliato per alcuni modelli.
+- **Latenza di OpenSeeFace**: La correzione della posizione della testa aggiunge circa 100 millisecondi di latenza. Regolare i parametri `head_pose_attack` e `head_pose_release` nello script `avatar_controller.gd` se necessario.
 
 ## Roadmap per la versione 0.1.0
 
@@ -296,10 +315,10 @@ La versione MVP dimostra che il processo funziona. Ecco cosa è necessario per r
 
 ### Assolutamente necessario
 
-- [ ] **Correzione della posa delle braccia:** i modelli devono essere caricati nella posa "A" naturale, non nella posa "T". È necessario correggere il correttore in fase di esecuzione oppure modificare il sistema di retargeting dell'importazione VRM in Godot per utilizzare le pose di riferimento della posa "A".
+- [ ] **Correzione della posa delle braccia:** i modelli devono essere caricati nella posa "A" naturale, non nella posa "T". È necessario correggere il correttore di runtime oppure modificare il sistema di retargeting dell'importazione VRM in Godot per utilizzare le pose di riferimento della posa "A".
 - [ ] **Connessione stabile per la sintesi vocale:** gestire in modo elegante eventuali interruzioni della connessione, ripristinare automaticamente la connessione e visualizzare chiaramente gli errori nell'interfaccia utente.
 - [ ] **Selezione del dispositivo audio:** consentire agli utenti di scegliere il proprio dispositivo di input del microfono, invece di affidarsi alle impostazioni predefinite del sistema.
-- [ ] **Salvataggio e ripristino delle impostazioni:** salvare e ripristinare le impostazioni selezionate, come l'avatar, il profilo di mappatura, la modalità del driver, la sensibilità e la voce, tra le diverse sessioni.
+- [ ] **Salvataggio e ripristino delle impostazioni:** salvare e ripristinare l'avatar selezionato, il profilo di mappatura, la modalità del driver, la sensibilità e la voce tra le sessioni.
 - [ ] **Gestione degli errori:** intercettare e visualizzare gli errori relativi al caricamento dei file VRM, alla sintesi vocale, al download degli avatar e all'analisi dei file di configurazione, invece di limitarsi a visualizzare avvisi nella console.
 
 ### Avrebbe dovuto
@@ -313,15 +332,15 @@ La versione MVP dimostra che il processo funziona. Ecco cosa è necessario per r
 ### Utile da avere
 
 - [ ] **Posizionamento del braccio IK** – sostituire il metodo di rotazione difettoso con una corretta cinematica inversa.
-- [ ] **Posizionamento delle dita** – i modelli VRM hanno delle ossa per le dita; aggiungere gesti delle mani di base.
+- [ ] **Posizionamento delle dita** – i modelli VRM hanno le ossa delle dita; aggiungere gesti delle mani di base.
 - [ ] **Sincronizzazione labiale da audio preregistrato** – analizzare file WAV/MP3 offline e generare tracce di visemi.
 - [ ] **Architettura a plugin** – sistema modulare di driver/mappers/render per estensioni di terze parti.
 - [ ] **Scene con più avatar** – caricare più avatar per scenari di dialogo/intervista.
 
-### Al di fuori dell'ambito (per il momento)
+### Al di fuori dell'ambito (per ora)
 
 - Tracciamento completo del corpo
-- Simulazione fisica di tessuti e capelli (gestita tramite "spring bones" di godot-vrm)
+- Simulazione fisica di tessuti e capelli (gestita da "godot-vrm spring bones")
 - Supporto per dispositivi mobili
 - Funzionalità di rete / multiplayer.
 
