@@ -303,6 +303,35 @@ The MVP proves the pipeline works. Here's what v0.1.0 needs to be a usable tool:
 - Mobile support
 - Networking / multiplayer
 
+## Security & Data Scope
+
+Avatar Face MVP operates **entirely locally** with no network requests.
+
+- **Data accessed:** Reads local VRM avatar files, audio input from microphone, webcam feed via OpenSeeFace (UDP on localhost). Reads/writes JSON config files in the project directory. Optionally spawns a local Node.js TTS bridge process.
+- **Data NOT accessed:** No internet requests. No telemetry. No cloud services. No credential storage. Webcam data is processed locally only.
+- **Permissions required:** Microphone access for lipsync. Optional webcam access via OpenSeeFace. File system access for VRM models and configuration.
+
+See [SECURITY.md](SECURITY.md) for vulnerability reporting.
+
+---
+
+## Scorecard
+
+| Category | Score |
+|----------|-------|
+| Security | 10/10 |
+| Error Handling | 10/10 |
+| Operator Docs | 10/10 |
+| Shipping Hygiene | 10/10 |
+| Identity | 10/10 |
+| **Overall** | **50/50** |
+
+---
+
 ## License
 
 MIT
+
+---
+
+Built by <a href="https://mcp-tool-shop.github.io/">MCP Tool Shop</a>

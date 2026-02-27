@@ -1,6 +1,6 @@
 {
   "name": "avatar-tts-bridge",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "Bridge between mcp-voice-soundboard (MCP/stdio) and Godot (WebSocket)",
