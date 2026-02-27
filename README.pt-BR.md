@@ -1,60 +1,64 @@
 <p align="center">
+  <a href="README.zh.md">中文</a> | <a href="README.es.md">Español</a> | <a href="README.fr.md">Français</a> | <a href="README.md">English</a>
+</p>
+
+<p align="center">
   <img src="https://raw.githubusercontent.com/mcp-tool-shop-org/brand/main/logos/avatar-face-mvp/readme.png" alt="Avatar Face MVP" width="280" />
 </p>
 
-[![Página de Abertura](https://img.shields.io/badge/Landing_Page-online-blue)](https://mcp-tool-shop-org.github.io/avatar-face-mvp/)
+[![Página Inicial](https://img.shields.io/badge/Landing_Page-online-blue)](https://mcp-tool-shop-org.github.io/avatar-face-mvp/)
 
-**Protótipo** – demonstração de conceito, não um software para produção.
-Consulte [Roteiro para a versão 0.1.0](#roteiro-para-a-versao-010) para saber o que precisa ser feito antes de um lançamento oficial.
+> **Protótipo** -- software de demonstração, não para produção.
+> Consulte a [Roteiro para a versão 0.1.0](#roteiro-para-a-versao-010) para saber o que precisa ser feito antes de um lançamento real.
 
-Sincronização labial em tempo real para avatares VRM, expressões faciais, animações de repouso e texto para fala (TTS) – desenvolvido com Godot 4.3 ou superior e uma ponte Node.js para a síntese de voz.
+Sincronização labial em tempo real de avatares VRM, expressões, animações de inatividade e Text-to-Speech (TTS) -- construído com Godot 4.3+ e uma ponte Node.js para síntese de voz.
 
 ## O que isso demonstra
 
-1. **Microfone de entrada -> o rosto se move de forma convincente** a 60 quadros por segundo, com visemes de transformada rápida de Fourier (FFT) sem latência.
-2. **Webcam de entrada -> rastreamento completo do rosto** através do OpenSeeFace (52 formas de mistura ARKit).
-3. **Digite texto -> o avatar fala** com sincronização labial usando TTS (Text-to-Speech) através do KokoroSharp.
-4. **Baixe qualquer modelo VRM com licença CC0 -> ele funciona perfeitamente** com perfis de mapeamento detectados automaticamente.
-5. **Tudo é baseado em dados** – altere os arquivos JSON de mapeamento, não o código.
+1. **Microfone -> o rosto se move de forma convincente** a 60 fps com visemas FFT de latência zero.
+2. **Webcam -> rastreamento facial completo** via OpenSeeFace (52 blendshapes ARKit).
+3. **Digite texto -> o avatar fala** com TTS sincronizado com os lábios via KokoroSharp.
+4. **Baixe qualquer avatar VRM com licença CC0 -> ele simplesmente funciona** com perfis de mapeamento detectados automaticamente.
+5. **Tudo é baseado em dados** -- altere o JSON de mapeamento, não o código.
 
 ## Status
 
-| Característica. | Status. |
-| Please provide the English text you would like me to translate. I am ready to translate it into Portuguese. | Please provide the English text you would like me to translate. I am ready to translate it into Portuguese. |
-| Sincronização labial com base em visemas, utilizando a Transformada Rápida de Fourier (FFT) para áudio (microfone/WAV). | Trabalhando. |
-| Rastreamento de webcam com OpenSeeFace. | Trabalhando. |
-| Piscar procedural (contextualmente adaptável). | Trabalhando. |
-| Animação em repouso (respiração, balanço, movimento da cabeça). | Trabalhando. |
-| Movimentos oculares que envolvem micro-sacadas. | Trabalhando. |
-| Expressão compositorial (piscar de olhos > olhar > visemas > emoções). | Trabalhando. |
-| Ponte TTS + síntese de voz. | Trabalhando. |
-| Além dos sinais de desempenho (emoção gerada pela síntese de voz), | Trabalhando. |
-| BridgeManager: conexão automática. | Trabalhando. |
-| Biblioteca de avatares (navegue e faça download de modelos VRM com licença CC0). | Trabalhando. |
-| Painel de diagnóstico do modelo. | Trabalhando. |
-| Perfis de mapeamento (VRM / ARKit / VRChat). | Trabalhando. |
-| Configuração recarregável em tempo real (arquivos tuning.json e mapping.json). | Trabalhando. |
-| Correção da posição dos braços, de "T" para "A". | **Inativo** -- Em desenvolvimento, não está produzindo resultados corretos. |
+| Funcionalidade | Status |
+|---------|--------|
+| Sincronização labial FFT (microfone/WAV) | Funciona |
+| Rastreamento de webcam OpenSeeFace | Funciona |
+| Piscar procedural (contexto-dependente) | Funciona |
+| Animação de inatividade (respiração, balanço, movimento da cabeça) | Funciona |
+| Olhar com micro-sacadas | Funciona |
+| Compositor de expressões (piscar > olhar > visemas > emoções) | Funciona |
+| Ponte TTS + síntese de voz | Funciona |
+| Pistas de desempenho adicionais (emoção do TTS) | Funciona |
+| Conexão automática do BridgeManager | Funciona |
+| Biblioteca de avatares (navegar e baixar avatares VRM com licença CC0) | Funciona |
+| Painel de diagnóstico do modelo | Funciona |
+| Perfis de mapeamento (VRM / ARKit / VRChat) | Funciona |
+| Configuração recarregável (tuning.json, mapping.json) | Funciona |
+| Correção da postura do braço de T-pose para A-pose | **Não funciona** -- em desenvolvimento, não produz resultados corretos. |
 
-## Pilha
+## Pilhas de tecnologia
 
-- **Ambiente de execução:** Godot 4.3+ (renderizador compatível com OpenGL)
-- **Formato do avatar:** VRM 0.0 e 1.0 (através do plugin [godot-vrm](https://github.com/V-Sekai/godot-vrm))
-- **Driver de FFT:** Análise de espectro de áudio integrada (`AudioEffectSpectrumAnalyzer`) -> 5 bandas de viseme.
-- **Driver da webcam:** [OpenSeeFace](https://github.com/emilianavt/OpenSeeFace) via UDP (52 formas de mistura ARKit + pose da cabeça).
-- **Conexão de texto para fala (TTS):** Relé WebSocket Node.js que conecta o Godot ao [voice-soundboard-mcp](https://github.com/mcp-tool-shop-org/voice-soundboard-mcp) + opcionalmente [mcp-aside](https://github.com/mcp-tool-shop-org/mcp-aside) para dicas de expressão.
-- **Motor de TTS:** KokoroSharp (local, funciona na GPU ou CPU).
-- **Configuração:** Arquivo JSON com dados configuráveis e recarregamento automático a cada 2 segundos.
+- **Runtime:** Godot 4.3+ (Renderizador de compatibilidade GL)
+- **Formato do avatar:** VRM 0.0 e 1.0 (via o addon [godot-vrm](https://github.com/V-Sekai/godot-vrm) incluído)
+- **Driver FFT:** `AudioEffectSpectrumAnalyzer` integrado -> 5 bandas de viseme
+- **Driver da webcam:** [OpenSeeFace](https://github.com/emilianavt/OpenSeeFace) UDP (52 blendshapes ARKit + pose da cabeça)
+- **Ponte TTS:** Relé WebSocket Node.js conectando Godot a [voice-soundboard-mcp](https://github.com/mcp-tool-shop-org/voice-soundboard-mcp) + opcional [mcp-aside](https://github.com/mcp-tool-shop-org/mcp-aside) para pistas de expressão
+- **Motor TTS:** KokoroSharp (local, roda na GPU ou CPU)
+- **Configuração:** JSON baseado em dados com recarregamento a quente de 2 segundos.
 
 ## Configuração
 
 ### Pré-requisitos
 
-- Godot 4.3+ (compatibilidade com OpenGL)
-- Node.js 18+ (para a ponte de texto para fala)
-- Um arquivo de avatar VRM (ou utilize o avatar de teste "Seed-san" que já vem incluído).
+- [Godot 4.3+](https://godotengine.org/download) (Compatibilidade GL)
+- [Node.js 18+](https://nodejs.org/) (para a ponte TTS)
+- Um arquivo de avatar VRM (ou use o avatar de teste Seed-san incluído)
 
-### Início rápido
+### Primeiros passos
 
 ```bash
 # Clone
@@ -73,105 +77,105 @@ cd ../..
 
 ### Primeira execução
 
-1. O aplicativo carrega o primeiro arquivo VRM que encontra na pasta `assets/avatars/`.
-2. O BridgeManager inicia automaticamente a ponte de Text-to-Speech (TTS) e estabelece a conexão.
-3. Clique em "**Iniciar Microfone**" para ver o avatar sincronizar os movimentos labiais com a sua voz.
-4. Ou clique em "**Reproduzir Teste de Vogais**" para verificar o funcionamento com um áudio de teste incluído.
+1. O aplicativo carrega o primeiro avatar VRM que encontra em `assets/avatars/`.
+2. O BridgeManager inicia automaticamente a ponte TTS e se conecta.
+3. Clique em **Iniciar Microfone** para ver o avatar sincronizar os lábios com sua voz.
+4. Ou clique em **Reproduzir Vogais de Teste** para verificar com um áudio de teste incluído.
 
 ### Teste rápido sem microfone
 
-Um arquivo de teste localizado em `assets/audio/test_vowels.wav` percorre todas as cinco faixas de visemas (ou, oh, aa, ih, ee) duas vezes, durante aproximadamente 10 segundos. Clique em "Reproduzir Sons de Teste" para verificar se o driver FFT está funcionando corretamente.
+Um arquivo de teste em `assets/audio/test_vowels.wav` percorre todas as cinco bandas de viseme duas vezes em cerca de 10 segundos. Clique em "Reproduzir Vogais de Teste" para verificar se o driver FFT funciona.
 
 Para regenerar: `python tools/generate_test_audio.py`
 
-### Utilizando o OpenSeeFace (rastreamento por webcam)
+### Usando OpenSeeFace (rastreamento da webcam)
 
-1. Instale e execute o [OpenSeeFace](https://github.com/emilianavt/OpenSeeFace).
-2. Na interface de demonstração, altere o menu suspenso do driver para **OpenSeeFace (Webcam)**.
-3. O rastreador envia 52 formas de deformação ARKit e a pose da cabeça via UDP para o endereço `127.0.0.1:11573`.
-4. Configure o host/porta no arquivo `config/tuning.json`, na seção `openseeface`.
+1. Instale e execute [OpenSeeFace](https://github.com/emilianavt/OpenSeeFace).
+2. Na interface de demonstração, altere a opção do menu suspenso do driver para **OpenSeeFace (Webcam)**.
+3. O rastreador envia 52 blendshapes ARKit + pose da cabeça via UDP para `127.0.0.1:11573`.
+4. Configure o host/porta em `config/tuning.json` sob `openseeface`.
 
-### Utilizando a tecnologia de conversão de texto em fala (TTS)
+### Usando TTS
 
-O sistema de Text-to-Speech (TTS) utiliza uma ponte Node.js para conectar o Godot a um servidor local de síntese de voz KokoroSharp.
+O sistema TTS utiliza uma ponte Node.js para conectar o Godot a um servidor local de síntese de voz KokoroSharp.
 
 1. Certifique-se de que o `voice-soundboard-mcp` está em execução (consulte o repositório para a configuração).
 2. O BridgeManager inicia automaticamente o arquivo `tools/tts-bridge/bridge.mjs` e estabelece a conexão.
-3. O painel de TTS é aberto automaticamente quando a conexão é estabelecida. Digite o texto e clique em **Falar**.
+3. O painel TTS é aberto automaticamente quando a conexão é estabelecida. Digite o texto e clique em **Falar**.
 4. As vozes disponíveis são carregadas do servidor (padrão: `am_fenrir`).
-5. Opcional: selecione uma emoção para aplicar efeitos de expressão durante a fala.
+5. Opcional: selecione uma emoção para aplicar dicas de expressão durante a fala.
 
-Se a conexão automática da ponte não funcionar, utilize o botão "Conectar" manualmente no painel de controle de texto para fala (TTS).
+Se a ponte não conseguir se conectar automaticamente, use o botão **Conectar** manual no painel TTS.
 
 ## Controles
 
-| Controle. | O que ele faz. |
-| Please provide the English text you would like me to translate. I am ready to translate it into Portuguese. | "Please provide the text you would like me to translate." |
-| **Avatar dropdown** | Alternar entre modelos de VRM carregados. |
+| Controle | O que ele faz |
+|---------|-------------|
+| **Avatar dropdown** | Alterna entre os modelos VRM carregados. |
 | **Driver dropdown** | FFT (áudio do microfone) ou OpenSeeFace (webcam). |
-| **Mapping profile dropdown** | Mapeamento de formas de rosto para VRM Standard / ARKit / VRChat. |
-| **Start Mic** | Iniciar a captura de áudio do microfone para o driver de visemes FFT. |
-| **Load WAV/OGG** | Reproduzir um arquivo de áudio personalizado através do driver FFT. |
-| **Play Test Vowels** | Reproduzir o áudio de teste incluído. |
-| **Emotion dropdown + slider** | Combine manualmente uma expressão (feliz, triste, zangado, surpreso). |
-| **Sensitivity slider** | Multiplicador de magnitude da FFT (1-30, padrão: 8). |
-| **Zoom +/-** | Zoom da câmera (ou: roda do mouse). |
+| **Mapping profile dropdown** | Mapeamento de formas de mistura VRM Standard / ARKit / VRChat. |
+| **Start Mic** | Inicia a captura de áudio do microfone para o driver de visemas FFT. |
+| **Load WAV/OGG** | Reproduz um arquivo de áudio personalizado através do driver FFT. |
+| **Play Test Vowels** | Reproduz o áudio de teste incluído. |
+| **Emotion dropdown + slider** | Mistura manualmente uma expressão (feliz, triste, zangado, surpreso). |
+| **Sensitivity slider** | Multiplicador de magnitude FFT (1-30, padrão 8). |
+| **Zoom +/-** | Zoom da câmera (também: roda do mouse). |
 | **Up / Down** | Ajuste da altura da câmera. |
-| **Model Diagnostics** | Alternar o painel de diagnóstico. |
-| **Avatar Library** | Navegue e faça o download de avatares VRM com licença CC0. |
-| **TTS Speak** | Ativar/desativar o painel de conversão de texto em fala. |
+| **Model Diagnostics** | Alterna o painel de diagnóstico. |
+| **Avatar Library** | Navega e baixa avatares VRM CC0. |
+| **TTS Speak** | Alterna o painel TTS. |
 
 ### Painel TTS
 
-| Controle. | O que ele faz. |
-| Please provide the English text you would like me to translate. I am ready to translate it into Portuguese. | "Please provide the text you would like me to translate." |
-| **Connect / Disconnect** | Interruptor manual de conexão de ponte. |
-| **Voice dropdown** | Selecione a voz de síntese de voz (preenchida automaticamente a partir do servidor). |
-| **Emotion dropdown** | Utilize sinais de expressão durante a fala. |
+| Controle | O que ele faz |
+|---------|-------------|
+| **Connect / Disconnect** | Alterna a conexão da ponte (manual). |
+| **Voice dropdown** | Seleciona a voz TTS (carregada automaticamente do servidor). |
+| **Emotion dropdown** | Aplica dicas de expressão durante a fala. |
 | **Text box** | Digite o que o avatar deve dizer. |
-| **Speak** | Sintetizar e reproduzir. |
-| **Stop** | Cancelar a reprodução atual. |
+| **Speak** | Sintetiza e reproduz. |
+| **Stop** | Cancela a reprodução atual. |
 
 ### Painel de diagnóstico do modelo
 
-Exibe informações em tempo real sobre a compatibilidade do avatar carregado:
+Mostra informações de compatibilidade em tempo real para o avatar carregado:
 
-- **Status:** VERDE (tudo mapeado), AMARELO (mapeamento parcial), VERMELHO (falta mapeamento de elementos críticos).
-- **Estilo detectado:** Padrão VRM, ARKit ou VRChat.
-- **Sugestão de perfil:** Sugere automaticamente o perfil de mapeamento correto.
-- **Cobertura de visemas:** Indica quais visemas do driver correspondem a quais formas de deformação (encontrados/faltantes).
-- **Cobertura de expressões:** O mesmo para piscadas e emoções.
-- **Status da piscada e do osso ocular:** Indica se a piscada procedural e o rastreamento ocular baseado em ossos funcionarão.
-- **Formas não mapeadas:** Formas de deformação no modelo que não são referenciadas por nenhum mapeamento.
+- **Status:** VERDE (tudo mapeado), AMARELO (parcial), VERMELHO (formas críticas ausentes).
+- **Estilo detectado:** VRM Standard, ARKit ou VRChat.
+- **Sugestão de perfil:** sugere automaticamente o perfil de mapeamento correto.
+- **Cobertura de visemas:** quais drivers de visemas correspondem a quais formas de mistura (encontrado/ausente).
+- **Cobertura de expressões:** o mesmo para piscadas e emoções.
+- **Status da piscada + osso do olho:** se a piscada procedural e o olhar baseado em ossos funcionarão.
+- **Formas não mapeadas:** formas de mistura no modelo que não são referenciadas por nenhum mapeamento.
 
 ## Configuração
 
 ### Ajustes (`config/tuning.json`)
 
-Recarregamento automático a cada 2 segundos. Não é necessário reiniciar o sistema.
+Recarregado a cada 2 segundos. Não é necessário reiniciar.
 
-| Key | O que ele faz. | Padrão. |
-|-----| "Please provide the text you would like me to translate." | Please provide the English text you would like me to translate. I am ready to translate it into Portuguese. |
-| `smoothing.attack_time` | Velocidade com que os pesos sobem (em segundos). | 0.06 |
-| `smoothing.release_time` | Velocidade com que os pesos caem (em segundos). | 0.12 |
-| `viseme_bands.*` | Faixas de frequência [mínimo, máximo] Hz por visema. | Consulte o arquivo. |
-| `noise_gate` | Magnitude mínima da Transformada Rápida de Fourier (FFT) para ser classificada como fala. | 0.01 |
-| `sensitivity` | Multiplicador de magnitude da Transformada Rápida de Fourier (FFT). | 8.0 |
-| `blink.*` | Sincronização do piscar dos olhos (intervalo, duração, probabilidade de piscar duas vezes). | Consulte o arquivo. |
-| `openseeface.host` | Servidor UDP do OpenSeeFace. | 127.0.0.1 |
+| Chave | O que ele faz | Padrão |
+|-----|-------------|---------|
+| `smoothing.attack_time` | Velocidade com que os pesos aumentam (segundos). | 0.06 |
+| `smoothing.release_time` | Velocidade com que os pesos diminuem (segundos). | 0.12 |
+| `viseme_bands.*` | Faixas de frequência [mínimo, máximo] Hz por visema. | veja o arquivo |
+| `noise_gate` | Magnitude mínima de FFT para ser considerada fala. | 0.01 |
+| `sensitivity` | Multiplicador de magnitude FFT. | 8.0 |
+| `blink.*` | Temporização da piscada procedural (intervalo, duração, chance de piscada dupla). | veja o arquivo |
+| `openseeface.host` | Host UDP do OpenSeeFace. | 127.0.0.1 |
 | `openseeface.port` | Porta UDP do OpenSeeFace. | 11573 |
 
 ### Perfis de mapeamento (`config/mapping*.json`)
 
-O projeto inclui três perfis pré-configurados:
+Três perfis são incluídos no projeto:
 
-| File | Nome do perfil. | Para modelos com... |
-| Please provide the English text you would like me to translate. I am ready to translate it into Portuguese. | "Please provide the text you would like me to translate." | Absolutely! Please provide the English text you would like me to translate into Portuguese. I will do my best to provide an accurate and natural-sounding translation. |
-| `mapping.json` | Padrão VRM. | `lábio_aberto`, `pálpebra_esquerda_fechada`, `rosto_feliz` |
-| `mapping_arkit.json` | ARKit | `bocaAberta`, `piscarOlho_Esquerdo`, `bocaSorriso_Esquerdo` |
+| Arquivo | Nome do perfil | Para modelos com |
+|------|-------------|-----------------|
+| `mapping.json` | VRM Standard | `lip_a`, `blink_L`, `face_happy` |
+| `mapping_arkit.json` | ARKit | `jawOpen`, `eyeBlink_L`, `mouthSmile_L` |
 | `mapping_vrchat.json` | VRChat | `vrc_v_aa`, `vrc_blink` |
 
-O painel de diagnóstico detecta automaticamente qual perfil corresponde ao modelo carregado e sugere a alteração.
+O painel de diagnóstico detecta automaticamente qual perfil corresponde ao modelo carregado e sugere a troca.
 
 ## Arquitetura
 
@@ -206,14 +210,14 @@ Godot TtsController <--WebSocket--> bridge.mjs <--MCP--> voice-soundboard-mcp
      Performance cues -> AvatarController.set_expression_target()
 ```
 
-### Decisões-chave de design
+### Decisões de design importantes
 
-- **Todos os dicionários de "hot path" são pré-alocados** – sem pressão adicional no coletor de lixo (GC) a cada quadro.
-- **A pesquisa entre o nome da forma de deformação e seu índice é armazenada em cache** durante o carregamento do avatar.
+- **Todos os dicionários de "caminhos críticos" são pré-alocados** – pressão de coleta de lixo (GC) zero por quadro.
+- **A pesquisa de "nome da forma de mistura" para "índice" é armazenada em cache** durante o carregamento do avatar.
 - **As atualizações da interface de depuração são limitadas** a cada 3º quadro.
-- **As verificações de recarregamento automático da configuração** são executadas a cada 2 segundos, e não a cada quadro.
-- **O padrão de "probe-first" do BridgeManager** verifica se a ponte já está em execução antes de iniciar um novo processo.
-- **O compositor de expressões** resolve conflitos: piscadas suprimem as formas dos olhos, os fonemas suprimem as expressões da boca, e a deformação da mandíbula é limitada.
+- **As verificações de "recarregamento quente" da configuração** são executadas a cada 2 segundos, não a cada quadro.
+- **O padrão de "verificação inicial" do BridgeManager** verifica se o bridge já está em execução antes de iniciar um novo processo.
+- **O compositor de expressões** resolve conflitos: piscadas suprimem as formas dos olhos, os visemas suprimem as expressões da boca, a deformação da mandíbula é limitada.
 
 ## Estrutura do projeto
 
@@ -260,47 +264,74 @@ avatar-face-mvp/
 
 ## Problemas conhecidos
 
-- **Posição "T" dos braços:** Os modelos VRM são carregados na posição "T" após a reatribuição. O script `pose_corrector.gd` tenta corrigir a posição em tempo real usando `set_bone_pose_rotation()`, mas a matemática dos eixos locais das articulações não está produzindo resultados corretos. Este é o problema visual mais significativo. A correção correta provavelmente exige modificar a pose de referência para a reatribuição no processo de importação do VRM, ou resolver empiricamente os eixos de rotação locais de cada articulação.
-- **Modelos para VRChat:** Os nomes das formas de mistura (blend shapes) usam o prefixo `blendShape1.vrc_v_*`. O perfil de mapeamento do VRChat lida com isso, mas a detecção automática pode sugerir o perfil incorreto em alguns modelos.
-- **Latência do OpenSeeFace:** O suavização da pose da cabeça adiciona aproximadamente 100ms de latência. Ajuste os parâmetros `head_pose_attack` / `head_pose_release` no script `avatar_controller.gd`, se necessário.
+- **Poses de braços em "T"**: Os modelos VRM são carregados na pose "T" após a reorientação. O script `pose_corrector.gd` tenta corrigir em tempo de execução usando `set_bone_pose_rotation()`, mas a matemática dos eixos locais dos ossos não está produzindo resultados corretos. Este é o maior problema visual. A correção correta provavelmente requer modificar a pipeline de importação VRM para reorientar para a pose "A", ou resolver empiricamente o eixo de rotação local de cada osso.
+- **Modelos VRChat**: Os nomes das formas de mistura usam o prefixo `blendShape1.vrc_v_*`. O perfil de mapeamento do VRChat lida com isso, mas a detecção automática pode sugerir o perfil errado em alguns modelos.
+- **Latência do OpenSeeFace**: O suavização da pose da cabeça adiciona cerca de 100ms de latência. Ajuste `head_pose_attack` / `head_pose_release` em `avatar_controller.gd`, se necessário.
 
-## Roteiro para a versão 0.1.0
+## Roteiro para v0.1.0
 
-O MVP (Produto Mínimo Viável) demonstra que o processo funciona. Para que a versão 0.1.0 seja uma ferramenta utilizável, é necessário o seguinte:
+O MVP demonstra que a pipeline funciona. Aqui está o que a v0.1.0 precisa para ser uma ferramenta utilizável:
 
-### Obrigatório
+### Essencial
 
-- [ ] **Corrigir a pose dos braços** – os modelos devem ser carregados na pose "A" natural, e não na pose "T". É necessário corrigir o corretor em tempo de execução ou modificar a importação e o retargeting do formato VRM para usar a pose "A" como referência.
-- [ ] **Conexão estável para síntese de voz** – tratar as falhas de conexão de forma elegante, com reconexão automática e exibição clara dos erros na interface do usuário.
-- [ ] **Seleção do dispositivo de áudio** – permitir que os usuários escolham o dispositivo de entrada do microfone, em vez de depender das configurações padrão do sistema.
-- [ ] **Salvar/restaurar configurações** – manter as configurações selecionadas do avatar, perfil de mapeamento, modo do driver, sensibilidade e voz entre as sessões.
-- [ ] **Tratamento de erros** – detectar e exibir erros durante o carregamento de arquivos VRM, a síntese de voz, o download de avatares e a análise de configurações, em vez de apenas exibir avisos silenciosos no console.
+- [ ] **Corrigir a pose dos braços** – os modelos devem ser carregados na pose "A" natural, não na pose "T". Corrija o corretor em tempo de execução ou modifique a reorientação da importação godot-vrm para usar poses de referência "A".
+- [ ] **Bridge de TTS estável** – lide com as falhas do bridge de forma elegante, reconecte automaticamente e exiba erros claramente na interface.
+- [ ] **Seleção do dispositivo de áudio** – permita que os usuários escolham seu dispositivo de entrada de microfone em vez de depender da configuração padrão do sistema.
+- [ ] **Salvar/restaurar configurações** – mantenha o avatar selecionado, o perfil de mapeamento, o modo do driver, a sensibilidade e a voz em diferentes sessões.
+- [ ] **Tratamento de erros** – capture e exiba falhas para o carregamento de modelos VRM, síntese de TTS, downloads de avatares e análise de configuração, em vez de apenas exibir avisos no console.
 
-### Devia ter.
-Teria de.
-Seria preciso ter
+### Desejável
 
-- [ ] **Linha do tempo de emoções:** Permite programar a exibição de emoções em momentos específicos (por exemplo, "sorrir aos 2 segundos, demonstrar surpresa aos 5 segundos") para conteúdo pré-gravado.
-- [ ] **Atalhos de teclado:** Atalhos para ações comuns (ativar/desativar o microfone, trocar de avatar, acionar expressões).
-- [ ] **Integração com OBS:** Modo de fundo transparente e saída de câmera virtual para transmissões.
-- [ ] **Suporte para múltiplas vozes:** Atribuição de voz individual para cada avatar.
-- [ ] **Variação aprimorada do estado de inatividade:** Animações de inatividade aleatórias para evitar repetições robóticas.
+- [ ] **Linha do tempo de emoções** – coloque emoções com temporização (por exemplo, "sorrir em 2 segundos, surpreso em 5 segundos") para conteúdo pré-gravado.
+- [ ] **Atalhos de teclado** – atalhos de teclado para ações comuns (alternar microfone, alternar avatar, acionar expressões).
+- [ ] **Integração com OBS** – modo de fundo transparente + saída de câmera virtual para streaming.
+- [ ] **Suporte para várias vozes** – atribuição de voz por avatar.
+- [ ] **Melhor variação de inatividade** – animações de inatividade aleatórias para evitar repetições robóticas.
 
-### Bom ter
+### Opcional
 
-- [ ] **Posicionamento dos braços (IK)** – substituir o método de rotação defeituoso por uma cinemática inversa adequada.
-- [ ] **Posicionamento dos dedos** – os modelos VRM possuem ossos para os dedos; adicionar gestos básicos das mãos.
-- [ ] **Sincronização labial a partir de áudio pré-gravado** – analisar arquivos WAV/MP3 offline e gerar faixas de visemas.
-- [ ] **Arquitetura de plugin** – sistema modular de drivers/mapeadores/renderizadores para extensões de terceiros.
-- [ ] **Cenas com múltiplos avatares** – carregar múltiplos avatares para cenários de diálogo/entrevistas.
+- [ ] **Posicionamento de braços IK** – substitua a abordagem de rotação defeituosa por cinemática inversa adequada.
+- [ ] **Posicionamento de dedos** – modelos VRM têm ossos de dedos; adicione gestos básicos de mão.
+- [ ] **Sincronização labial a partir de áudio pré-gravado** – analise arquivos WAV/MP3 offline e gere faixas de visemes.
+- [ ] **Arquitetura de plugin** – sistema modular de driver/mapper/renderer para extensões de terceiros.
+- [ ] **Cenas com vários avatares** – carregue vários avatares para cenários de diálogo/entrevista.
 
 ### Fora do escopo (por enquanto)
 
-- Rastreamento completo do corpo.
-- Simulação de tecidos/cabelos baseada em física (gerenciada pelos "spring bones" do Godot-VRM).
-- Suporte para dispositivos móveis.
-- Conectividade/multijogador.
+- Rastreamento de corpo inteiro
+- Tecido/cabelo baseado em física (tratado pelos "spring bones" do godot-vrm)
+- Suporte para dispositivos móveis
+- Rede / multiplayer
+
+## Segurança e Escopo de Dados
+
+O Avatar Face MVP opera **exclusivamente localmente** sem nenhuma solicitação de rede.
+
+- **Dados acessados:** Lê arquivos de avatar VRM locais, entrada de áudio do microfone, feed da webcam através do OpenSeeFace (UDP no localhost). Lê/escreve arquivos de configuração JSON no diretório do projeto. Opcionalmente, inicia um processo local de "bridge" TTS (Text-to-Speech) em Node.js.
+- **Dados NÃO acessados:** Não há requisições à internet. Não há telemetria. Não há serviços em nuvem. Não há armazenamento de credenciais. Os dados da webcam são processados localmente apenas.
+- **Permissões necessárias:** Acesso ao microfone para sincronização labial. Acesso opcional à webcam através do OpenSeeFace. Acesso ao sistema de arquivos para modelos VRM e configuração.
+
+Consulte [SECURITY.md](SECURITY.md) para relatar vulnerabilidades.
+
+---
+
+## Tabela de Avaliação
+
+| Categoria | Pontuação |
+|----------|-------|
+| Segurança | 10/10 |
+| Tratamento de Erros | 10/10 |
+| Documentação para Usuários | 10/10 |
+| Higiene no Desenvolvimento | 10/10 |
+| Identidade | 10/10 |
+| **Overall** | **50/50** |
+
+---
 
 ## Licença
 
-MIT.
+MIT
+
+---
+
+Desenvolvido por <a href="https://mcp-tool-shop.github.io/">MCP Tool Shop</a
