@@ -16,3 +16,5 @@ Thumbs.db
 tools/tts-bridge/node_modules/
 .tts-output/
 site/.astro/
+site/node_modules/
+site/dist/
