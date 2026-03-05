@@ -15,7 +15,7 @@ export const config: SiteConfig = {
     headlineAccent: 'real-time, zero-latency.',
     description: 'Mic in → face moves convincingly at 60 fps with FFT visemes. Webcam in → full face tracking with 52 ARKit blendshapes. Type text → avatar speaks with lip-synced TTS.',
     primaryCta: { href: '#what-it-proves', label: 'See capabilities' },
-    secondaryCta: { href: '#status', label: 'Features' },
+    secondaryCta: { href: 'handbook/', label: 'Read the Handbook' },
     previews: [
       { label: 'Mic input', code: 'FFT visemes @ 60fps zero-latency lipsync' },
       { label: 'Webcam', code: 'OpenSeeFace tracking with 52 blendshapes' },
